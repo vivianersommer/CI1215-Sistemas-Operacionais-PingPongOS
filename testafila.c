@@ -77,7 +77,7 @@ int fila_correta (filaint_t *fila)
    {
       // testa ponteiro next (avaliação em curto-circuito)
       if (aux->next && (aux->next->prev == aux))
-         ; // ponteiro ok
+         ; // ponteiro okz
       else
       {
          printf ("ERRO: ponteiros errados ->next ou ->next->prev\n") ;

@@ -13,14 +13,12 @@
 
 */
 
-void queue_append(queue_t **queue, queue_t *elem){
+void queue_append(queue_t **queue, queue_t *elem){ // - OK
 
     if(*queue == NULL){
-	*queue=elem;
         elem->next = elem;
         elem->prev = elem;
 		*queue = elem;
-        return;
     }
     else{
         queue_t *primeiro = *queue;
@@ -30,46 +28,28 @@ void queue_append(queue_t **queue, queue_t *elem){
         elem->prev = ultimo;
         elem->next = primeiro;
         primeiro->prev = elem;
-        return;
     }
+    return;
 }
 
 queue_t *queue_remove (queue_t **queue, queue_t *elem){
 	
-	if ( *queue == NULL && elem == NULL ){
+	if ( *queue == NULL || elem == NULL){
 		return *queue;
 	}
 
-	
-	queue_t *aux = *queue;
-	queue_t *primeiro = *queue;
+	queue_t *A = elem->prev;      	
+	queue_t *C = elem->next;
 
-	//search for elem in queue
-	while ( aux != elem ){
-		if ( aux == primeiro ) {
-			return *queue;
-		}
-		aux = aux->next;
-	}
-
-
-	queue_t *esq = elem->prev;      	
-	queue_t *dir = elem->next;
-
-
-	esq->next = dir;
-	esq->prev = dir->prev->prev;
-
-	dir->prev = esq;
-	dir->next = esq->next->next;
-
+    A->next = C;
+	C->prev = A;
+    elem->next = NULL;
+    elem->prev = NULL;  
 
 	return *queue;
-
 }
 
-int queue_size(queue_t *queue){
-	
+int queue_size(queue_t *queue){ // - OK
 
 	if (queue == NULL ) {
 		return 0;
@@ -85,7 +65,6 @@ int queue_size(queue_t *queue){
 	}
 	
 	return i;
-
 }
 
 void queue_print(char *name, queue_t *queue, void print_elem (void*) ){

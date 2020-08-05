@@ -15,13 +15,14 @@
 
 void queue_append(queue_t **queue, queue_t *elem){
 
-    if(queue == NULL){
-		queue=elem;
+    if(*queue == NULL){
+	*queue=elem;
         elem->next = elem;
         elem->prev = elem;
     }
     else{
         queue_t *primeiro = *queue;
+	
         queue_t *ultimo = primeiro->prev;
         ultimo->next = elem;
         elem->prev = ultimo;
@@ -33,19 +34,35 @@ void queue_append(queue_t **queue, queue_t *elem){
 
 queue_t *queue_remove (queue_t **queue, queue_t *elem){
 	
-	if ( queue == NULL ){
-		return queue;
+	if ( *queue == NULL && elem == NULL ){
+		return *queue;
 	}
+
+	
+	queue_t *aux = *queue;
+	queue_t *primeiro = *queue;
+
+	//search for elem in queue
+	while ( aux != elem ){
+		if ( aux == primeiro ) {
+			return *queue;
+		}
+		aux = aux->next;
+	}
+
+
 	queue_t *esq = elem->prev;      	
 	queue_t *dir = elem->next;
-	
+
+
 	esq->next = dir;
+	esq->prev = dir->prev->prev;
+
 	dir->prev = esq;
+	dir->next = esq->next->next;
 
-	elem->prev = NULL;
-	elem->next = NULL;
 
-	return queue;
+	return *queue;
 
 }
 

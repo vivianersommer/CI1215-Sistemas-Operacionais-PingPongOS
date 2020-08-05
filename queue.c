@@ -40,7 +40,6 @@ queue_t *queue_remove (queue_t **queue, queue_t *elem){
 		return *queue;
 	}
 
-	
 	queue_t *aux = *queue;
 	queue_t *primeiro = *queue;
 
@@ -53,15 +52,14 @@ queue_t *queue_remove (queue_t **queue, queue_t *elem){
 	}
 
 
-	queue_t *esq = elem->prev;      	
-	queue_t *dir = elem->next;
+	queue_t *esq;
+	      esq = elem->prev;      	
+	queue_t *dir; 
+	      dir = elem->next;
 
 
 	esq->next = dir;
-	esq->prev = dir->prev->prev;
-
 	dir->prev = esq;
-	dir->next = esq->next->next;
 
 
 	return *queue;

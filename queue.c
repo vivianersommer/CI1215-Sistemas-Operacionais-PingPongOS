@@ -63,7 +63,7 @@ int queue_size(queue_t *queue){ // - OK
 	queue_t *aux = queue;
 
 	int i = 1;
-	while ( aux->next != queue->next ){
+	while ( aux->next != queue ){
 		aux = aux->next;	
 		i++;
 	}

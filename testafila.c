@@ -158,7 +158,6 @@ int main (int argc, char **argv, char **envp)
       assert (aux->prev == NULL) ;       // testa elemento removido
       assert (aux->next == NULL) ;       // testa elemento removido
       i++ ;
-      printf(" %d ", i );
    }
    assert (fila0 == NULL) ;             // fila deve estar vazia
    printf ("Ok, apos %d remocoes a fila ficou vazia\n", N) ;

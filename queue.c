@@ -38,6 +38,14 @@ queue_t *queue_remove (queue_t **queue, queue_t *elem){
 		return *queue;
 	}
 
+	queue_t *aux = (*queue)->next;
+	while (aux != elem){
+		if(aux->next == (*queue)->next){
+			return NULL;
+		}
+		aux = aux->next;
+	} 
+
 	queue_t *A = elem->prev;      	
 	queue_t *C = elem->next;
 

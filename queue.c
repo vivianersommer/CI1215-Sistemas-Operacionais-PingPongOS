@@ -41,15 +41,22 @@ queue_t *queue_remove (queue_t **queue, queue_t *elem){
 	queue_t *A = elem->prev;      	
 	queue_t *C = elem->next;
 
-    A->next = C;
+	if ( A == elem && C == elem ) {
+		*queue = NULL;
+    		elem->next = NULL;
+	    	elem->prev = NULL;  
+		return NULL;
+	}
+
+    	A->next = C;
 	C->prev = A;
 
-    elem->next = NULL;
-    elem->prev = NULL;  
+    	elem->next = NULL;
+    	elem->prev = NULL;  
 
-    if(elem == *queue){
-        *queue = C;
-    }
+    	if ( elem == *queue ){
+        	*queue = C;
+    	}
 
 	return *queue;
 }

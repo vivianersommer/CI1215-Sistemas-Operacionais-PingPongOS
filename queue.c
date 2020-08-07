@@ -15,18 +15,18 @@
 
 void queue_append(queue_t **queue, queue_t *elem){ // - OK
 
-	if(elem->next != NULL || elem->prev != NULL){
+    //verifica se elemento a inserir esta isolado	
+    if ( elem->next != NULL && elem->prev != NULL ){
 		return;
-	}
-
-    if(*queue == NULL){
-        elem->next = elem;
-        elem->prev = elem;
-		*queue = elem;
     }
-    else{
-        queue_t *primeiro = *queue;
-	
+
+    //inserçao em fila vazia
+    if( *queue == NULL ){
+        elem->next = elem->prev = elem;
+	*queue = elem;
+    }
+    else {
+        queue_t *primeiro = *queue;	
         queue_t *ultimo = primeiro->prev;
         ultimo->next = elem;
         elem->prev = ultimo;
@@ -51,23 +51,28 @@ queue_t *queue_remove (queue_t **queue, queue_t *elem){
 		aux = aux->next;
 	} 
 
+	// A e C sao elementos adjacentes ao que sera removido
 	queue_t *A = elem->prev;      	
 	queue_t *C = elem->next;
 
+	//se fila tem apenas um elemento, este eh removido
 	if ( A == elem && C == elem ) {
+
 		*queue = NULL;
 		elem->next = NULL;
 		elem->prev = NULL;
 
 		return elem;
 	}
-
+	
+	//ajuste de ponteiros para remover elemento
     	A->next = C;
 	C->prev = A;
 
     	elem->next = NULL;
     	elem->prev = NULL;  
 
+	//se o elemento removido eh a cabeca, ajusta ponteiro da mesma
     	if ( elem == *queue ){
         	*queue = C;
     	}
@@ -101,8 +106,10 @@ void queue_print(char *name, queue_t *queue, void print_elem (void*) ){
 	}
 
 	printf("[");
+
 	queue_t *aux = queue;
 	print_elem(aux);
+	printf(" ");
 	aux = aux->next;
 	while (aux != queue){
 		print_elem(aux);

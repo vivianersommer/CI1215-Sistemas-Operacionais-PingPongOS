@@ -77,7 +77,7 @@ int fila_correta (filaint_t *fila)
    {
       // testa ponteiro next (avaliação em curto-circuito)
       if (aux->next && (aux->next->prev == aux))
-         ; // ponteiro ok
+         ; // ponteiro okz
       else
       {
          printf ("ERRO: ponteiros errados ->next ou ->next->prev\n") ;
@@ -296,7 +296,7 @@ int main (int argc, char **argv, char **envp)
 
    // retirar e destruir cada elemento da fila, em sequencia
    for (i=0; i< N*N; i++)
-   {
+   {    
       aux = (filaint_t *) queue_remove ((queue_t**) &fila0, (queue_t*) fila0) ;
       assert (fila_correta (fila0)) ;
       assert (aux->id == i) ;

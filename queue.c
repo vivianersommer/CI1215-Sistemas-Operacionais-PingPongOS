@@ -5,7 +5,10 @@
 
 /*
 
-    Implementar essas funções:
+	GRR20182564 Viviane da Rosa Sommer
+	GRR20185174 Luzia Millena Santos Silva
+
+    Implementada as seguintes funções:
     queue_append - adicionar elemento
     queue_remove - remover elemento
     queue_size - retorna o tamanho da fila
@@ -13,7 +16,7 @@
 
 */
 
-void queue_append(queue_t **queue, queue_t *elem){ // - OK
+void queue_append(queue_t **queue, queue_t *elem){ 
 
     //verifica se elemento a inserir esta isolado	
     if ( elem->next != NULL && elem->prev != NULL ){
@@ -80,7 +83,7 @@ queue_t *queue_remove (queue_t **queue, queue_t *elem){
 	return elem;
 }
 
-int queue_size(queue_t *queue){ // - OK
+int queue_size(queue_t *queue){ 
 
 	if (queue == NULL ) {
 		return 0;

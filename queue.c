@@ -92,17 +92,22 @@ int queue_size(queue_t *queue){ // - OK
 
 void queue_print(char *name, queue_t *queue, void print_elem (void*) ){
 
+	printf("Saída gerada: ");
 	if (queue == NULL ) {
-		return;
+		printf("[] \n");
+		return;	
 	}
 
-	queue_t *primeiro = queue;
-	queue_t *aux = primeiro;
-
-	while ( aux->next != primeiro->next ){
-		aux = aux->next;	
-		print_elem( aux );		
-	}
+	printf("[");
+	queue_t *aux = queue;
+	print_elem(aux);
+	aux = aux->next;
+	while (aux != queue){
+		print_elem(aux);
+		aux = aux->next;
+		printf(" ");
+	} 
+	printf("] \n");
 	return;		
 
 

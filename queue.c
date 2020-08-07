@@ -38,30 +38,32 @@ void queue_append(queue_t **queue, queue_t *elem){ // - OK
 
 queue_t *queue_remove (queue_t **queue, queue_t *elem){
 	
-		if ( *queue == NULL){
-			return *queue;
-		}
+	if ( *queue == NULL ){
+		return NULL;
+	}
 
-		queue_t *aux = (*queue)->next;
-		while (aux != elem){
-			if(aux->next == (*queue)->next){
-				return NULL;
-			}
-			aux = aux->next;
-		} 
-
-		queue_t *A = elem->prev;      	
-		queue_t *C = elem->next;
-
-		if ( A == elem && C == elem ) {
-			*queue = NULL;
-			elem->next = NULL;
-			elem->prev = NULL;  
+	//verifica se elemento pertence a fila
+	queue_t *aux = (*queue)->next;
+	while ( aux != elem ) {
+		if( aux->next == ( *queue )->next ) {
 			return NULL;
 		}
+		aux = aux->next;
+	} 
+
+	queue_t *A = elem->prev;      	
+	queue_t *C = elem->next;
+
+	if ( A == elem && C == elem ) {
+		*queue = NULL;
+		elem->next = NULL;
+		elem->prev = NULL;
+
+		return elem;
+	}
 
     	A->next = C;
-		C->prev = A;
+	C->prev = A;
 
     	elem->next = NULL;
     	elem->prev = NULL;  
@@ -70,7 +72,7 @@ queue_t *queue_remove (queue_t **queue, queue_t *elem){
         	*queue = C;
     	}
 
-	return *queue;
+	return elem;
 }
 
 int queue_size(queue_t *queue){ // - OK

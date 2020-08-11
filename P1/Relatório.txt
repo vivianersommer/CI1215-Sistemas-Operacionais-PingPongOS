@@ -1,0 +1,12 @@
+
+1.Explique o objetivo e os parâmetros de cada uma das quatro funções acima
+    a)getcontext(&a) 
+    b)setcontext(&a) 
+    c)swapcontext(&a,&b) 
+    d)makecontext(&a, …)
+
+2.Explique o significado dos campos da estrutura ucontext_t que foram utilizados no código.
+
+3.Explique cada linha do código de contexts.c que chame uma dessas funções ou que manipule estruturas do tipo ucontext_t.
+
+4.Desenhe o diagrama de tempo dessa execução.

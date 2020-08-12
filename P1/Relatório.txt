@@ -31,3 +31,8 @@
 
 4.Desenhe o diagrama de tempo dessa execução.
 
+ContextMain ->       ContextPing (0) -> ContextPong (0)   -> 
+ContextPing (1)   -> ContextPong (1) -> ContextPing (2)   -> 
+ContextPong (2)   -> ContextPing (3) -> ContextPong (3)   ->
+ContextPing (end) -> ContextMain     -> ContextPong (end) -> 
+ContextMain(end)

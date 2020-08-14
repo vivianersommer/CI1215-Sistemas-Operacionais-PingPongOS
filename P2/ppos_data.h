@@ -37,6 +37,8 @@ typedef struct
   // preencher quando necessário
 } barrier_t ;
 
+
+
 // estrutura que define uma fila de mensagens
 typedef struct
 {

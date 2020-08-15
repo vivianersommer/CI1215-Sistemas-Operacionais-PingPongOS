@@ -8,7 +8,7 @@
 
 char *stack ;
 int i=1;
-task_t ContextMain,ContextAtual;
+task_t ContextMain, *ContextAtual;
 
 /*
 
@@ -25,15 +25,30 @@ task_t ContextMain,ContextAtual;
 */
 
 void ppos_init (){
-    getcontext (&ContextMain.context) ;
-    getcontext(&ContextAtual.context) ; 
+
+
+    char *stack;
+    stack = malloc (STACKSIZE);
+    if (stack){
+        ContextMain.context.uc_stack.ss_sp = stack;
+        ContextMain.context.uc_stack.ss_size = STACKSIZE;
+        ContextMain.context.uc_stack.ss_flags = 0;
+        ContextMain.context.uc_link = 0;
+        ContextMain.id = 0;
+    }
+    else{
+        perror ("Erro na criação da pilha: ");
+        exit (1);
+    }
+    ContextAtual = &ContextMain; 
+
     /* desativa o buffer da saida padrao (stdout), usado pela função printf */
     setvbuf (stdout, 0, _IONBF, 0) ;
 }
 
 int task_create (task_t *task, void (*start_routine)(void *),  void *arg) {
-   *(&task->id) = i++;
    getcontext (&task->context) ;
+   char *stack; 
    stack = malloc (STACKSIZE) ;
    if (stack)
    {
@@ -41,12 +56,15 @@ int task_create (task_t *task, void (*start_routine)(void *),  void *arg) {
       (&task->context)->uc_stack.ss_size = STACKSIZE ;
       (&task->context)->uc_stack.ss_flags = 0 ;
       (&task->context)->uc_link = 0 ;
+      *(&task->id) = i++;
    }
    else
    {
       perror ("Erro na criação da pilha: ") ;
       return (-1) ;
    }
+    getcontext(&ContextAtual->context);
+
     makecontext (&task->context, (void*)(*start_routine), 1, arg);
 
     #ifdef DEBUG
@@ -56,22 +74,24 @@ int task_create (task_t *task, void (*start_routine)(void *),  void *arg) {
 }
 
 int task_switch (task_t *task){
+    task_t *ContextoAntigo;
+    ContextoAntigo = ContextAtual;
+    ContextAtual = task;
     #ifdef DEBUG
-    printf ("task_switch: trocando contexto %d para %d\n",ContextAtual.id, task->id) ;
+    printf ("task_switch: trocando contexto %d para %d\n",ContextoAntigo->id, task->id) ;
     #endif
-    ContextAtual = (*task);
-    swapcontext (&task->context,&ContextAtual.context) ;
+    swapcontext (&ContextoAntigo->context,&task->context) ; 
     return task_id(); 
 }
 
 void task_exit (int exit_code){
-    // #ifdef DEBUG
-    // printf ("task_exit: tarefa %d\n sendo encerrada", ContextAtual.id) ;
-    // #endif
+    #ifdef DEBUG
+    printf ("task_exit: tarefa %d\n sendo encerrada", ContextAtual.id) ;
+    #endif
     task_switch(&ContextMain);
 }
 
 int task_id (){
-    return (int) (&ContextAtual)->id;
+    return (int) *(&ContextAtual->id);
 }
 

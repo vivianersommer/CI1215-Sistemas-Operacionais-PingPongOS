@@ -6,7 +6,7 @@
 
 #define STACKSIZE 32768	
 
-task_t ContextAtual, ContextMain;
+task_t ContextMain,ContextAtual;
 
 /*
 
@@ -23,40 +23,42 @@ task_t ContextAtual, ContextMain;
 */
 
 void ppos_init (){
-    getcontext(&ContextMain);
+    getcontext (&ContextMain.context) ;
+    getcontext(&ContextAtual.context) ; 
     /* desativa o buffer da saida padrao (stdout), usado pela função printf */
     setvbuf (stdout, 0, _IONBF, 0) ;
 }
 
 int task_create (task_t *task, void (*start_routine)(void *),  void *arg) {
-   getcontext (&task) ;
+   char *stack ;
+   getcontext (&task->context) ;
    stack = malloc (STACKSIZE) ;
    if (stack)
    {
-      task.uc_stack.ss_sp = stack ;
-      task.uc_stack.ss_size = STACKSIZE ;
-      task.uc_stack.ss_flags = 0 ;
-      task.uc_link = 0 ;
+      (&task->context)->uc_stack.ss_sp = stack ;
+      (&task->context)->uc_stack.ss_size = STACKSIZE ;
+      (&task->context)->uc_stack.ss_flags = 0 ;
+      (&task->context)->uc_link = 0 ;
    }
    else
    {
       perror ("Erro na criação da pilha: ") ;
       return (-1) ;
    }
-   &ContextAtual = &task;
-   makecontext (&task, (void*)(*start_routine), 1, args);
-   return task_id(); 
+   makecontext (&task->context, (void*)(*start_routine), 1, arg);
+   return (int) (*task).id;        //task_id(); 
 }
 
 int task_switch (task_t *task){
-    swapcontext (&ContextAtual, &task) ;
+    swapcontext (&ContextAtual.context, &task->context) ;
+    return task_id(); 
 }
 
 void task_exit (int exit_code){
-    task_switch(&ContextAtual, &ContextMain)
+    task_switch(&ContextMain);
 }
 
 int task_id (){
-    return &ContextAtual->id;
+    return (int) (&ContextMain)->id;
 }
 

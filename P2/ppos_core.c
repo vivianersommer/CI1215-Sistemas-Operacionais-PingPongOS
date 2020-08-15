@@ -7,7 +7,7 @@
 #define STACKSIZE 32768	
 
 char *stack ;
-
+int i=1;
 task_t ContextMain,ContextAtual;
 
 /*
@@ -32,9 +32,7 @@ void ppos_init (){
 }
 
 int task_create (task_t *task, void (*start_routine)(void *),  void *arg) {
-    #ifdef DEBUG
-    printf ("task_create: criou tarefa %d\n", task->id) ;
-    #endif
+   *(&task->id) = i++;
    getcontext (&task->context) ;
    stack = malloc (STACKSIZE) ;
    if (stack)
@@ -49,22 +47,28 @@ int task_create (task_t *task, void (*start_routine)(void *),  void *arg) {
       perror ("Erro na criação da pilha: ") ;
       return (-1) ;
    }
-   makecontext (&task->context, (void*)(*start_routine), 1, arg);
+    makecontext (&task->context, (void*)(*start_routine), 1, arg);
+
+    // #ifdef DEBUG
+    // printf ("task_create: criou tarefa %d\n", task->id) ;
+    // #endif
+
    return task_id();     
 }
 
 int task_switch (task_t *task){
-    #ifdef DEBUG
-    printf ("task_switch: trocando contexto %d\n -> %d\n",ContextAtual.id, task->id) ;
-    #endif
-    swapcontext (&ContextAtual.context, &task->context) ;
+    ContextAtual = (*task);
+    // #ifdef DEBUG
+    // printf ("task_switch: trocando contexto %d para %d\n",ContextAtual.id, task->id) ;
+    // #endif
+    swapcontext (&task->context,&ContextAtual.context) ;
     return task_id(); 
 }
 
 void task_exit (int exit_code){
-    #ifdef DEBUG
-    printf ("task_exit: tarefa %d\n sendo encerrada", ContextAtual.id) ;
-    #endif
+    // #ifdef DEBUG
+    // printf ("task_exit: tarefa %d\n sendo encerrada", ContextAtual.id) ;
+    // #endif
     task_switch(&ContextMain);
 }
 

@@ -3,8 +3,10 @@
 #include <assert.h>
 #include "ppos.h"
 #include "ppos_data.h"
-
+#define DEBUG
 #define STACKSIZE 32768	
+
+char *stack ;
 
 task_t ContextMain,ContextAtual;
 
@@ -30,7 +32,9 @@ void ppos_init (){
 }
 
 int task_create (task_t *task, void (*start_routine)(void *),  void *arg) {
-   char *stack ;
+    #ifdef DEBUG
+    printf ("task_create: criou tarefa %d\n", task->id) ;
+    #endif
    getcontext (&task->context) ;
    stack = malloc (STACKSIZE) ;
    if (stack)
@@ -46,19 +50,25 @@ int task_create (task_t *task, void (*start_routine)(void *),  void *arg) {
       return (-1) ;
    }
    makecontext (&task->context, (void*)(*start_routine), 1, arg);
-   return (int) (*task).id;        //task_id(); 
+   return task_id();     
 }
 
 int task_switch (task_t *task){
+    #ifdef DEBUG
+    printf ("task_switch: trocando contexto %d\n -> %d\n",ContextAtual.id, task->id) ;
+    #endif
     swapcontext (&ContextAtual.context, &task->context) ;
     return task_id(); 
 }
 
 void task_exit (int exit_code){
+    #ifdef DEBUG
+    printf ("task_exit: tarefa %d\n sendo encerrada", ContextAtual.id) ;
+    #endif
     task_switch(&ContextMain);
 }
 
 int task_id (){
-    return (int) (&ContextMain)->id;
+    return (int) (&ContextAtual)->id;
 }
 

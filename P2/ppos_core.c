@@ -49,18 +49,17 @@ int task_create (task_t *task, void (*start_routine)(void *),  void *arg) {
    }
     makecontext (&task->context, (void*)(*start_routine), 1, arg);
 
-    // #ifdef DEBUG
-    // printf ("task_create: criou tarefa %d\n", task->id) ;
-    // #endif
-
+    #ifdef DEBUG
+    printf ("task_create: criou tarefa %d\n", task->id) ;
+    #endif
    return task_id();     
 }
 
 int task_switch (task_t *task){
+    #ifdef DEBUG
+    printf ("task_switch: trocando contexto %d para %d\n",ContextAtual.id, task->id) ;
+    #endif
     ContextAtual = (*task);
-    // #ifdef DEBUG
-    // printf ("task_switch: trocando contexto %d para %d\n",ContextAtual.id, task->id) ;
-    // #endif
     swapcontext (&task->context,&ContextAtual.context) ;
     return task_id(); 
 }

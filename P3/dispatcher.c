@@ -15,21 +15,25 @@ typedef struct filaTarefa
 } filaTarefa ;
 
 
-task_t scheduler(filaTarefa *tarefasUser){
-   return tarefasUser->next->tarefa;
+task_t *scheduler(filaTarefa *tarefasUser){
+   if(tarefasUser->next!= NULL){
+      task_t *tarefa = &tarefasUser->next->tarefa;
+      return tarefa;
+   }
+   return NULL;
 }
 
 void dispatcher (filaTarefa *tarefasUser) {
-   while(tarefasUser > 0){
-      task_t proxima = scheduler(tarefasUser);
-      if(proxima.id >= 0){
-         task_switch (&proxima);
-         switch (proxima.status){
+   while(tarefasUser != NULL){
+      task_t *prox = scheduler(tarefasUser);
+      if(prox != NULL){
+         task_switch (prox);
+         switch (prox->status){
             case (0):
-               queue_append ((queue_t **) &tarefasUser,  (queue_t*) &proxima) ;
+               queue_append ((queue_t **) &tarefasUser,  (queue_t*) &prox) ;
                break;
             case (1):
-               queue_remove ((queue_t**) &tarefasUser, (queue_t*) &proxima) ;
+               queue_remove ((queue_t**) &tarefasUser, (queue_t*) &prox) ;
                break;
             case (2):
                tarefasUser = tarefasUser->next;

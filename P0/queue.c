@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <assert.h>
 #include "queue.h"
+#define DEBUG
 
 /*
 
@@ -17,6 +18,10 @@
 */
 
 void queue_append(queue_t **queue, queue_t *elem){ 
+	
+	#ifdef DEBUG
+    	printf ("oi bb");
+    #endif
 
     //verifica se elemento a inserir esta isolado	
     if ( elem->next != NULL && elem->prev != NULL ){

@@ -11,22 +11,27 @@ typedef struct filaTarefa
 {
    struct filaTarefa *prev ;  
    struct filaTarefa *next ;  
-   task_t tarefa ;
+   task_t *tarefa ;
 } filaTarefa ;
 
 
 task_t *scheduler(filaTarefa *tarefasUser){
-   if(tarefasUser->next!= NULL){
-      task_t *tarefa = &tarefasUser->next->tarefa;
+   if(tarefasUser->tarefa != NULL){
+      task_t *tarefa = tarefasUser->next->tarefa;
       return tarefa;
    }
    return NULL;
 }
 
 void dispatcher (filaTarefa *tarefasUser) {
-   while(tarefasUser != NULL){
+   while(tarefasUser->tarefa != NULL){
+
       task_t *prox = scheduler(tarefasUser);
       if(prox != NULL){
+	#ifdef DEBUG
+	printf("entrou no while");
+    	#endif
+   
          task_switch (prox);
          switch (prox->status){
             case (0):

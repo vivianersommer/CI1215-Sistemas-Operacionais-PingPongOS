@@ -5,10 +5,19 @@
 #include "ppos_data.h"
 #define DEBUG
 #define STACKSIZE 32768	
+#define N 100
+
+typedef struct filaTarefa
+{
+   struct filaTarefa *prev ;  
+   struct filaTarefa *next ;  
+   task_t tarefa ;
+} filaTarefa ;
 
 char *stack ;
 int i=1;
 task_t ContextMain, *ContextAtual;
+filaTarefa tarefasUser[N];
 
 /*
 
@@ -35,15 +44,17 @@ void ppos_init (){
         ContextMain.context.uc_stack.ss_flags = 0;
         ContextMain.context.uc_link = 0;
         ContextMain.id = 0;
+        ContextMain.status = 0;
     }
     else{
         perror ("Erro na criação da pilha: ");
         exit (1);
     }
     ContextAtual = &ContextMain; 
-
+    task_yield();
     /* desativa o buffer da saida padrao (stdout), usado pela função printf */
     setvbuf (stdout, 0, _IONBF, 0) ;
+
 }
 
 int task_create (task_t *task, void (*start_routine)(void *),  void *arg) {
@@ -57,6 +68,7 @@ int task_create (task_t *task, void (*start_routine)(void *),  void *arg) {
       (&task->context)->uc_stack.ss_flags = 0 ;
       (&task->context)->uc_link = 0 ;
       *(&task->id) = i++;
+      task->status = 0;
    }
    else
    {
@@ -64,7 +76,7 @@ int task_create (task_t *task, void (*start_routine)(void *),  void *arg) {
       return (-1) ;
    }
     getcontext(&ContextAtual->context);
-
+    
     makecontext (&task->context, (void*)(*start_routine), 1, arg);
 
     #ifdef DEBUG
@@ -77,6 +89,8 @@ int task_switch (task_t *task){
     task_t *ContextoAntigo;
     ContextoAntigo = ContextAtual;
     ContextAtual = task;
+    (ContextoAntigo)->status = 1;
+    (ContextAtual)->status = 0;
     #ifdef DEBUG
     printf ("task_switch: trocando contexto %d para %d\n",ContextoAntigo->id, task->id) ;
     #endif
@@ -86,12 +100,17 @@ int task_switch (task_t *task){
 
 void task_exit (int exit_code){
     #ifdef DEBUG
-    printf ("task_exit: tarefa %d\n sendo encerrada", ContextAtual.id) ;
+    printf ("task_exit: tarefa %d\n sendo encerrada", ContextAtual->id) ;
     #endif
+    (ContextAtual)->status = 2;
     task_switch(&ContextMain);
 }
 
 int task_id (){
     return (int) *(&ContextAtual->id);
+}
+
+void task_yield(){
+   dispatcher(&tarefasUser);
 }
 

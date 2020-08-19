@@ -11,11 +11,20 @@
 #include "queue.h"		// biblioteca de filas genéricas
 
 // Estrutura que define um Task Control Block (TCB)
+
+typedef enum Status
+{
+ Pronta,
+ Suspensa, 
+ Terminada
+} Status; 
+
 typedef struct task_t
 {
    struct task_t *prev, *next ;		// ponteiros para usar em filas
    int id ;				// identificador da tarefa
    ucontext_t context ;			// contexto armazenado da tarefa
+   Status status; //estado da tarefa
    // ... (outros campos serão adicionados mais tarde)
 } task_t ;
 

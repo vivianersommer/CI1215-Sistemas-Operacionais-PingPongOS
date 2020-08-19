@@ -1,34 +1,43 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <assert.h>
+#include "ppos.h"
+#include "ppos_data.h"
+#define DEBUG
+#define STACKSIZE 32768	
+#define N 100
 
-/*
+typedef struct filaTarefa
+{
+   struct filaTarefa *prev ;  
+   struct filaTarefa *next ;  
+   task_t tarefa ;
+} filaTarefa ;
 
-função dispatcher
-início
-   // enquanto houverem tarefas de usuário
-   enquanto ( userTasks > 0 )
 
-      // escolhe a próxima tarefa a executar
-      próxima = scheduler()
+task_t scheduler(filaTarefa *tarefasUser){
+   return tarefasUser->next->tarefa;
+}
 
-      // escalonador escolheu uma tarefa?      
-      se próxima <> NULO então
-
-         // transfere controle para a próxima tarefa
-         task_switch (próxima)
-         
-         // voltando ao dispatcher, trata a tarefa de acordo com seu estado
-         caso o estado da tarefa "próxima" seja:
-            PRONTA    : ...
-            TERMINADA : ...
-            SUSPENSA  : ...
-            (etc)
-         fim caso         
-
-      fim se
-
-   fim enquanto
-
-   // encerra a tarefa dispatcher
-   task_exit(0)
-fim
-
-*/
+void dispatcher (filaTarefa *tarefasUser) {
+   while(tarefasUser > 0){
+      task_t proxima = scheduler(tarefasUser);
+      if(proxima.id >= 0){
+         task_switch (&proxima);
+         switch (proxima.status){
+            case (0):
+               queue_append ((queue_t **) &tarefasUser,  (queue_t*) &proxima) ;
+               break;
+            case (1):
+               queue_remove ((queue_t**) &tarefasUser, (queue_t*) &proxima) ;
+               break;
+            case (2):
+               tarefasUser = tarefasUser->next;
+               break;
+            default:
+               break;
+         }
+      }
+   }
+   task_exit(0);
+}

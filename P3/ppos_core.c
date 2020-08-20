@@ -77,8 +77,8 @@ int task_create (task_t *task, void (*start_routine)(void *),  void *arg) {
     context->prev = NULL;
     queue_append ((queue_t **) &tarefasUser,  context) ;
 
-    makecontext (&task->context, (void*)(*start_routine), 1, arg);
 
+     makecontext (&task->context, (void*)(*start_routine), 1, arg);
      #ifdef DEBUG
      printf ("task_create: criou tarefa %d\n", task->id) ;
      #endif
@@ -105,8 +105,8 @@ void task_exit (int exit_code){
     // printf ("task_exit: tarefa %d\n sendo encerrada", ContextAtual->id) ;
     // #endif
     (ContextAtual)->status = 2;
-   // dispatcher(tarefasUser);
-    task_switch(ContextAtual);
+    dispatcher(tarefasUser);
+    task_switch(&ContextMain);
 }
 
 int task_id (){
@@ -114,7 +114,8 @@ int task_id (){
 }
 
 void task_yield(){
-
-	dispatcher(tarefasUser);
+	 
+    task_switch(tarefasUser);
+    dispatcher(tarefasUser);
 }
 

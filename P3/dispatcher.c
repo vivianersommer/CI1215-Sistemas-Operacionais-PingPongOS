@@ -30,7 +30,7 @@ void dispatcher (task_t *tarefasUser) {
 
                tarefasUser = tarefasUser->next;
 	       //queue_append ((queue_t **) &tarefasUser,  (queue_t*) &prox) ;
-         	task_switch (tarefasUser);
+               task_switch (tarefasUser);
                break;
             case (1):
                tarefasUser = tarefasUser->next;

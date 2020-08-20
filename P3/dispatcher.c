@@ -24,7 +24,7 @@ task_t *scheduler(filaTarefa *tarefasUser){
 }
 
 void dispatcher (filaTarefa *tarefasUser) {
-   while(tarefasUser->tarefa != NULL){
+   while(tarefasUser->next != NULL){
 
       task_t *prox = scheduler(tarefasUser);
       if(prox != NULL){

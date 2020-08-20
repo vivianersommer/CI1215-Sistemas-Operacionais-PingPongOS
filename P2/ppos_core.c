@@ -17,7 +17,7 @@ typedef struct filaTarefa
 char *stack ;
 int i=1;
 task_t ContextMain, *ContextAtual;
-filaTarefa *tarefasUser[N];
+filaTarefa *tarefasUser, tanana;
 
 /*
 
@@ -34,8 +34,7 @@ filaTarefa *tarefasUser[N];
 */
 
 void ppos_init (){
-
-
+    tarefasUser = NULL;
     char *stack;
     stack = malloc (STACKSIZE);
     if (stack){
@@ -51,7 +50,10 @@ void ppos_init (){
         exit (1);
     }
     ContextAtual = &ContextMain; 
-    queue_append ((queue_t **) &tarefasUser,  (queue_t*) ContextAtual) ;
+    queue_t* context = (queue_t*) &ContextMain;
+    context->next = NULL;
+    context->prev = NULL;
+    queue_append ((queue_t **) &tarefasUser,  context) ;
 
     /* desativa o buffer da saida padrao (stdout), usado pela função printf */
     setvbuf (stdout, 0, _IONBF, 0) ;
@@ -78,7 +80,12 @@ int task_create (task_t *task, void (*start_routine)(void *),  void *arg) {
    }
     getcontext(&ContextAtual->context);
     
-    queue_append ((queue_t **) &tarefasUser,  (queue_t*) &ContextAtual) ;
+    ContextAtual = &ContextMain; 
+
+    queue_t* context = (queue_t*) &task->context;
+    context->next = NULL;
+    context->prev = NULL;
+    queue_append ((queue_t **) &tarefasUser,  context) ;
 
     makecontext (&task->context, (void*)(*start_routine), 1, arg);
 

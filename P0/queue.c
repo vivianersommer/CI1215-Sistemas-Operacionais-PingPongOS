@@ -19,10 +19,6 @@
 
 void queue_append(queue_t **queue, queue_t *elem){ 
 	
-	#ifdef DEBUG
-    	printf ("oi bb");
-    #endif
-
     //verifica se elemento a inserir esta isolado	
     if ( elem->next != NULL && elem->prev != NULL ){
 		return;
@@ -31,7 +27,7 @@ void queue_append(queue_t **queue, queue_t *elem){
     //inserçao em fila vazia
     if( *queue == NULL ){
         elem->next = elem->prev = elem;
-	*queue = elem;
+		*queue = elem;
     }
     else {
         queue_t *primeiro = *queue;	

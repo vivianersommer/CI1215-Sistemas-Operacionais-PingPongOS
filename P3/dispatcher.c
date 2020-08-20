@@ -9,25 +9,34 @@
 
 task_t *scheduler(task_t *tarefasUser){
    if(tarefasUser != NULL){
-      return tarefasUser->next; 
+	   if (tarefasUser->next == tarefasUser){		   
+		printf(" tarefa %d ", tarefasUser->id );
+	  
+	      return tarefasUser; 
+   	   }else {
+	   	return tarefasUser->next;	  
+	   }
    }
    return NULL; 
 }
 
 void dispatcher (task_t *tarefasUser) {
-   while(&tarefasUser->next != NULL){
+   while(tarefasUser != NULL){
       task_t *prox = scheduler(tarefasUser);
       if(prox != NULL){
          task_switch (prox);
          switch (prox->status){
             case (0):
-               queue_append ((queue_t **) &tarefasUser,  (queue_t*) &prox) ;
+
+               tarefasUser = tarefasUser->next;
+	       //queue_append ((queue_t **) &tarefasUser,  (queue_t*) &prox) ;
+         	task_switch (tarefasUser);
                break;
             case (1):
-               queue_remove ((queue_t**) &tarefasUser, (queue_t*) &prox) ;
+               tarefasUser = tarefasUser->next;
                break;
             case (2):
-               tarefasUser = tarefasUser->next;
+               queue_remove ((queue_t**) &tarefasUser, (queue_t*) &prox) ;
                break;
             default:
                break;

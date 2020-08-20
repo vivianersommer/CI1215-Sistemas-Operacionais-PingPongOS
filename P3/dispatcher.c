@@ -8,14 +8,10 @@
 #define N 100
 
 task_t *scheduler(task_t *tarefasUser){
-   task_t *aux = tarefasUser;
-   printf ("%d\n",aux->id);
-	aux = aux->next;
-	while (aux != tarefasUser){
-      printf ("%d\n",aux->id);
-		aux = aux->next;
-	} 
-   return tarefasUser->next; 
+   if(tarefasUser != NULL){
+      return tarefasUser->next; 
+   }
+   return NULL; 
 }
 
 void dispatcher (task_t *tarefasUser) {

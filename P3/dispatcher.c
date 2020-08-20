@@ -7,31 +7,21 @@
 #define STACKSIZE 32768	
 #define N 100
 
-typedef struct filaTarefa
-{
-   struct filaTarefa *prev ;  
-   struct filaTarefa *next ;  
-   task_t *tarefa ;
-} filaTarefa ;
-
-
-task_t *scheduler(filaTarefa *tarefasUser){
-   if(tarefasUser->tarefa != NULL){
-      task_t *tarefa = tarefasUser->next->tarefa;
-      return tarefa;
-   }
-   return NULL;
+task_t *scheduler(task_t *tarefasUser){
+   task_t *aux = tarefasUser;
+   printf ("%d\n",aux->id);
+	aux = aux->next;
+	while (aux != tarefasUser){
+      printf ("%d\n",aux->id);
+		aux = aux->next;
+	} 
+   return tarefasUser->next; 
 }
 
-void dispatcher (filaTarefa *tarefasUser) {
-   while(tarefasUser->next != NULL){
-
+void dispatcher (task_t *tarefasUser) {
+   while(&tarefasUser->next != NULL){
       task_t *prox = scheduler(tarefasUser);
       if(prox != NULL){
-	#ifdef DEBUG
-	printf("entrou no while");
-    	#endif
-   
          task_switch (prox);
          switch (prox->status){
             case (0):

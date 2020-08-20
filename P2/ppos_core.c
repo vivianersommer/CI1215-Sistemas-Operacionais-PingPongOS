@@ -7,17 +7,9 @@
 #define STACKSIZE 32768	
 #define N 100
 
-typedef struct filaTarefa
-{
-   struct filaTarefa *prev ;  
-   struct filaTarefa *next ;  
-   task_t tarefa ;
-} filaTarefa ;
-
 char *stack ;
 int i=1;
-task_t ContextMain, *ContextAtual;
-filaTarefa *tarefasUser, tanana;
+task_t ContextMain, *ContextAtual ,*tarefasUser;
 
 /*
 
@@ -54,10 +46,8 @@ void ppos_init (){
     context->next = NULL;
     context->prev = NULL;
     queue_append ((queue_t **) &tarefasUser,  context) ;
-
     /* desativa o buffer da saida padrao (stdout), usado pela função printf */
     setvbuf (stdout, 0, _IONBF, 0) ;
-
 }
 
 int task_create (task_t *task, void (*start_routine)(void *),  void *arg) {
@@ -82,7 +72,7 @@ int task_create (task_t *task, void (*start_routine)(void *),  void *arg) {
     
     ContextAtual = &ContextMain; 
 
-    queue_t* context = (queue_t*) &task->context;
+    queue_t* context = (queue_t*) task;
     context->next = NULL;
     context->prev = NULL;
     queue_append ((queue_t **) &tarefasUser,  context) ;
@@ -121,6 +111,6 @@ int task_id (){
 }
 
 void task_yield(){
-   dispatcher(&tarefasUser);
+   dispatcher(tarefasUser);
 }
 

@@ -90,12 +90,9 @@ int task_create (task_t *task, void (*start_routine)(void *),  void *arg) {
     context->prev = NULL;
     queue_append ((queue_t **) &tarefasUser,  context) ;
     
-    int tam = queue_size( (queue_t *) tarefasUser);
-
     makecontext (&task->context, (void*)(*start_routine), 1, arg);
     #ifdef DEBUG
     printf ("task_create: criou tarefa %d\n", task->id) ;
-    printf ("tam : %d\n", tam) ;
     #endif
 
    return task_id();     

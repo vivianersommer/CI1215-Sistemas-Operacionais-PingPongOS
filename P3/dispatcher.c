@@ -25,10 +25,8 @@ void dispatcher (task_t *tarefasUser) {
             case (1):
                tarefasUser = tarefasUser->next;
                break;
-            case (2):
-               queue_remove ((queue_t**) &tarefasUser, (queue_t*) &prox) ;
-               break;
             default:
+               task_exit(0);
                break;
          }
       }

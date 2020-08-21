@@ -51,6 +51,10 @@ void ppos_init (){
     ContextMain.prev = NULL;
     ContextAtual = &ContextMain;
 
+    #ifdef DEBUG
+    printf ("ppos_init: criou tarefa %d - MAIN \n", ContextAtual->id) ;
+    #endif
+
     //Cria tarefa dispatcher
     task_create(&Dispatcher, dispatcher, NULL);
 
@@ -67,13 +71,7 @@ int task_create (task_t *task, void (*start_routine)(void *),  void *arg) {
       (&task->context)->uc_stack.ss_size = STACKSIZE ;
       (&task->context)->uc_stack.ss_flags = 0 ;
       (&task->context)->uc_link = 0 ;
-
-      if ( i == 1 ) {
-	      *(&task->id) = -20;
-	      i++;
-      } else {
-	      *(&task->id) = i++;
-      }
+	  *(&task->id) = i++;
       task->status = 0;
    }
    else
@@ -91,9 +89,16 @@ int task_create (task_t *task, void (*start_routine)(void *),  void *arg) {
     queue_append ((queue_t **) &tarefasUser,  context) ;
     
     makecontext (&task->context, (void*)(*start_routine), 1, arg);
-    #ifdef DEBUG
-    printf ("task_create: criou tarefa %d\n", task->id) ;
-    #endif
+    if(task->id == 1){
+        #ifdef DEBUG
+        printf ("task_create: criou tarefa %d - DISPACHER\n", task->id) ;
+        #endif
+    }
+    else{
+        #ifdef DEBUG
+        printf ("task_create: criou tarefa %d\n", task->id) ;
+        #endif
+    }
 
    return task_id();     
 }
@@ -104,8 +109,8 @@ int task_switch (task_t *task){
     
     ContextoAntigo = ContextAtual;
     ContextAtual = task;
-    (ContextoAntigo)->status = 1;
-    ContextAtual->status = 0;
+    (ContextoAntigo)->status = 0;
+    ContextAtual->status = 1;
     // #ifdef DEBUG
     // printf ("task_switch: trocando contexto %d para %d\n",ContextoAntigo->id, task->id) ;
     // #endif
@@ -129,6 +134,7 @@ int task_id (){
 void task_yield(){
     //Se a tarefa não eh o main
     if ( ContextAtual->id != 0 ){	
+       ContextAtual->status = 1;
        queue_append ((queue_t **) tarefasUser,  (queue_t*) ContextAtual) ;
     } 
     task_switch(&Dispatcher);

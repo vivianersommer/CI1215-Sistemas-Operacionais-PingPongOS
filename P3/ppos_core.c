@@ -120,7 +120,7 @@ int task_switch (task_t *task){
 
 void task_exit (int exit_code){
      #ifdef DEBUG
-     printf ("task_exit: tarefa %d\n sendo encerrada", ContextAtual->id) ;
+     printf ("task_exit: tarefa %d sendo encerrada\n", ContextAtual->id) ;
      #endif
 
      dispatcher(tarefasUser);

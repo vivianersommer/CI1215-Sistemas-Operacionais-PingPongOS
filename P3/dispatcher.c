@@ -12,9 +12,7 @@ task_t *scheduler(task_t *tarefasUser){
 }
 
 void dispatcher (task_t *tarefasUser) {   
-
-   int tam = queue_size( (queue_t*)tarefasUser) ;
-   while( tam > 0) {
+   while( queue_size( (queue_t*)tarefasUser)  > 0) {
       task_t *prox = scheduler(tarefasUser);
       if(prox != NULL){
          queue_remove ((queue_t**) &tarefasUser, (queue_t*) prox) ;

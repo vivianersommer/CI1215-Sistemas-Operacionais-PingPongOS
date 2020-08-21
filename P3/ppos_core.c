@@ -44,14 +44,13 @@ void ppos_init (){
         exit (1);
     }
     
+    ContextMain.next = NULL;
+    ContextMain.prev = NULL;
     ContextAtual = &ContextMain;
-    queue_t* context = (queue_t*) &ContextMain;
-    context->next = NULL;
-    context->prev = NULL;
-    queue_append ((queue_t **) &tarefasUser,  context) ;
 
     //Cria tarefa dispatcher
-    task_create(&Dispatcher, dispatcher, "despachou amore");
+    task_create(&Dispatcher, dispatcher, NULL);
+    queue_remove ((queue_t**) &tarefasUser, (queue_t*) &Dispatcher) ;
 
     /* desativa o buffer da saida padrao (stdout), usado pela função printf */
     setvbuf (stdout, 0, _IONBF, 0) ;
@@ -90,6 +89,7 @@ int task_create (task_t *task, void (*start_routine)(void *),  void *arg) {
     context->next = NULL;
     context->prev = NULL;
     queue_append ((queue_t **) &tarefasUser,  context) ;
+    
     int tam = queue_size( (queue_t *) tarefasUser);
 
     makecontext (&task->context, (void*)(*start_routine), 1, arg);
@@ -109,9 +109,9 @@ int task_switch (task_t *task){
     ContextAtual = task;
     (ContextoAntigo)->status = 1;
     ContextAtual->status = 0;
-    #ifdef DEBUG
-    printf ("task_switch: trocando contexto %d para %d\n",ContextoAntigo->id, task->id) ;
-    #endif
+    // #ifdef DEBUG
+    // printf ("task_switch: trocando contexto %d para %d\n",ContextoAntigo->id, task->id) ;
+    // #endif
     swapcontext (&ContextoAntigo->context,&task->context) ;
     return task_id(); 
 }

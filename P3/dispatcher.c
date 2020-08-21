@@ -8,45 +8,17 @@
 #define N 100
 
 task_t *scheduler(task_t *tarefasUser){
-
-	/*task_t *aux = tarefasUser;
-	aux = aux->next;
-	while (aux != tarefasUser){
-		printf("%d\n",aux->id);
-		aux = aux->next;
-	}
-	
-     	if( tarefasUser != NULL ){
-		//Se tem apenas 1 tarefa eh o dispatcher
-   		if ( tarefasUser->next == tarefasUser ){		   
-			printf( " tarefa %d ", tarefasUser->id );
-		        return NULL; 
-   	   	}else { 
-//			printf( " tarefa %d ", tarefasUser->id );
-	   		return tarefasUser->next;	  
-	   	}
-   	}
-   	return NULL; */
-		task_t *aux = tarefasUser->next;
-	return aux->next;
+	return tarefasUser;
 }
 
-void dispatcher (task_t *tarefasUser) {
-     #ifdef DEBUG
-     printf ("dispatcher tarefa: %d ", tarefasUser->id ) ;
-     #endif
-    
+void dispatcher (task_t *tarefasUser) {    
    while( queue_size( (queue_t*)tarefasUser) > 0 ) {
-
       task_t *prox = scheduler(tarefasUser);
-    
       if(prox != NULL){
-
          queue_remove ((queue_t**) &tarefasUser, (queue_t*) &prox) ;
-	 prox->status = 1;
+	      prox->status = 1;
          task_switch (prox);
-
-	 switch (prox->status){
+	   switch (prox->status){
             case (0):
 		
 	       //queue_append ((queue_t **) &tarefasUser,  (queue_t*) &prox) ;

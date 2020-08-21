@@ -8,7 +8,7 @@
 #define N 100
 
 task_t *scheduler(task_t *tarefasUser){
-	return tarefasUser->next;
+	return tarefasUser;
 }
 
 void dispatcher (task_t *tarefasUser) {    

@@ -11,8 +11,10 @@ task_t *scheduler(task_t *tarefasUser){
 	return tarefasUser;
 }
 
-void dispatcher (task_t *tarefasUser) {    
-   while( queue_size( (queue_t*)tarefasUser) > 0 ) {
+void dispatcher (task_t *tarefasUser) {   
+
+   int tam = queue_size( (queue_t*)tarefasUser) ;
+   while( tam > 0) {
       task_t *prox = scheduler(tarefasUser);
       if(prox != NULL){
          queue_remove ((queue_t**) &tarefasUser, (queue_t*) &prox) ;
@@ -20,13 +22,20 @@ void dispatcher (task_t *tarefasUser) {
          task_switch (prox);
 	   switch (prox->status){
             case (0):
-		         tarefasUser = tarefasUser->next;
+	       //puts("PRONTAAA  ");
+	       tarefasUser = tarefasUser->next;
+	       //task_yield();
                break;
             case (1):
+		//puts("SUSOENSAA  ");
                tarefasUser = tarefasUser->next;
+	       //task_yield();
                break;
-            default:
-               task_exit(0);
+            //default:
+            case (2):
+               queue_remove ((queue_t**) &tarefasUser, (queue_t*) &prox) ;
+	       prox->status = 2;
+               task_exit(2);
                break;
          }
       }

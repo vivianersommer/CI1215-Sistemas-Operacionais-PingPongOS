@@ -119,12 +119,20 @@ int task_switch (task_t *task){
 }
 
 void task_exit (int exit_code){
-    // #ifdef DEBUG
-    // printf ("task_exit: tarefa %d\n sendo encerrada", ContextAtual->id) ;
-    // #endif
+     #ifdef DEBUG
+     printf ("task_exit: tarefa %d\n sendo encerrada", ContextAtual->id) ;
+     #endif
     (ContextAtual)->status = 2;
     dispatcher(tarefasUser);
-    task_switch(&ContextMain);
+    //task_switch(&Dispatcher);
+
+    printf(" EXITCODE %d ", exit_code);
+    if ( exit_code == 2 ){
+        task_switch(&Dispatcher);
+    }
+    else {
+	    task_switch(&ContextMain);
+   }
 }
 
 int task_id (){
@@ -134,9 +142,16 @@ int task_id (){
 void task_yield(){
     //Se a tarefa não eh o main
     if ( ContextAtual->id != 0 ){	
-       ContextAtual->status = 1;
        queue_append ((queue_t **) tarefasUser,  (queue_t*) ContextAtual) ;
-    } 
+    }
+    //se ja foi suspensa, tarefa é terminada
+   if (ContextAtual-> status == 1 ) {
+	  ContextAtual->status = 2;
+	  task_exit(2);
+   }else { 
+          ContextAtual->status = 1;
+   }
+          ContextAtual->status = 1;
     task_switch(&Dispatcher);
 }
 

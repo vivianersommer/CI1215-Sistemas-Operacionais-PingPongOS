@@ -109,8 +109,8 @@ int task_switch (task_t *task){
     
     ContextoAntigo = ContextAtual;
     ContextAtual = task;
-    (ContextoAntigo)->status = 0;
-    ContextAtual->status = 1;
+    (ContextoAntigo)->status = 1;
+    ContextAtual->status = 0;
     // #ifdef DEBUG
     // printf ("task_switch: trocando contexto %d para %d\n",ContextoAntigo->id, task->id) ;
     // #endif

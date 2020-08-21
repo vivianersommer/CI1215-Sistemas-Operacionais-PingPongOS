@@ -17,24 +17,18 @@ void dispatcher (task_t *tarefasUser) {
    while( tam > 0) {
       task_t *prox = scheduler(tarefasUser);
       if(prox != NULL){
-         queue_remove ((queue_t**) &tarefasUser, (queue_t*) &prox) ;
+         queue_remove ((queue_t**) &tarefasUser, (queue_t*) prox) ;
 	      prox->status = 1;
          task_switch (prox);
 	   switch (prox->status){
             case (0):
-	       //puts("PRONTAAA  ");
-	       tarefasUser = tarefasUser->next;
-	       //task_yield();
+               queue_append ((queue_t**) &tarefasUser, (queue_t*) prox) ;
                break;
             case (1):
-		//puts("SUSOENSAA  ");
-               tarefasUser = tarefasUser->next;
-	       //task_yield();
                break;
             default:
-            //case (2):
-               queue_remove ((queue_t**) &tarefasUser, (queue_t*) &prox) ;
-	       prox->status = 2;
+               queue_remove ((queue_t**) &tarefasUser, (queue_t*) prox) ;
+	            prox->status = 2;
                task_exit(2);
                break;
          }

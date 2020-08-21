@@ -65,13 +65,12 @@ queue_t *queue_remove (queue_t **queue, queue_t *elem){
 		*queue = NULL;
 		elem->next = NULL;
 		elem->prev = NULL;
-
 		return elem;
 	}
 	
 	//ajuste de ponteiros para remover elemento
     	A->next = C;
-	C->prev = A;
+		C->prev = A;
 
     	elem->next = NULL;
     	elem->prev = NULL;  
@@ -80,7 +79,6 @@ queue_t *queue_remove (queue_t **queue, queue_t *elem){
     	if ( elem == *queue ){
         	*queue = C;
     	}
-
 	return elem;
 }
 

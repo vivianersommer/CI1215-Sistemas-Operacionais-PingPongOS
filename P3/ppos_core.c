@@ -26,7 +26,10 @@ task_t ContextMain, *ContextAtual ,*tarefasUser, Dispatcher;
 */
 
 void ppos_init (){
-    
+
+    /* desativa o buffer da saida padrao (stdout), usado pela função printf */
+    setvbuf (stdout, 0, _IONBF, 0) ;
+
     tarefasUser = NULL;
     char *stack;
     stack = malloc (STACKSIZE);
@@ -50,10 +53,7 @@ void ppos_init (){
 
     //Cria tarefa dispatcher
     task_create(&Dispatcher, dispatcher, NULL);
-    queue_remove ((queue_t**) &tarefasUser, (queue_t*) &Dispatcher) ;
 
-    /* desativa o buffer da saida padrao (stdout), usado pela função printf */
-    setvbuf (stdout, 0, _IONBF, 0) ;
 }
 
 int task_create (task_t *task, void (*start_routine)(void *),  void *arg) {
@@ -130,12 +130,10 @@ int task_id (){
 }
 
 void task_yield(){
-
     //Se a tarefa não eh o main
-    if ( tarefasUser->id != 0 ){	
-       queue_append ((queue_t **) &tarefasUser,  (queue_t*) &tarefasUser) ;
+    if ( ContextAtual->id != 0 ){	
+       queue_append ((queue_t **) tarefasUser,  (queue_t*) ContextAtual) ;
     } 
-    task_switch(tarefasUser);
-//    dispatcher(tarefasUser);
+    task_switch(&Dispatcher);
 }
 

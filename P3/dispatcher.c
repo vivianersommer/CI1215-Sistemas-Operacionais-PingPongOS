@@ -39,6 +39,7 @@ void dispatcher (task_t *tarefasUser) {
                break;
          }
       }
+//      printf("TAMANHO %d ", tam);
    }
    task_exit(0);
 }

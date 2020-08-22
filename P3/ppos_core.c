@@ -58,35 +58,36 @@ void ppos_init (){
     Dispatcher.status = 1;
     //Cria tarefa dispatcher
     task_create(&Dispatcher, dispatcher, NULL);
-    // queue_remove((queue_t**) &tarefasUser, (queue_t*) Dispatcher) ;
 
 }
 
 int task_create (task_t *task, void (*start_routine)(void *),  void *arg) {
-   
-   getcontext (&task->context) ;
-   char *stack; 
-   stack = malloc (STACKSIZE) ;
-   if (stack)
-   {
-      (&task->context)->uc_stack.ss_sp = stack ;
-      (&task->context)->uc_stack.ss_size = STACKSIZE ;
-      (&task->context)->uc_stack.ss_flags = 0 ;
-      (&task->context)->uc_link = 0 ;
-      *(&task->id) = i++;
-      task->status = 0;
-   }
-   else
-   {
-      perror ("Erro na criação da pilha: ") ;
-      return (-1) ;
-   }
+
+    getcontext (&task->context) ;
+    char *stack; 
+    stack = malloc (STACKSIZE) ;
+
+    if (stack)
+    {
+        (&task->context)->uc_stack.ss_sp = stack ;
+        (&task->context)->uc_stack.ss_size = STACKSIZE ;
+        (&task->context)->uc_stack.ss_flags = 0 ;
+        (&task->context)->uc_link = 0 ;
+        *(&task->id) = i++;
+        task->status = 0;
+    }
+    else
+    {
+        perror ("Erro na criação da pilha: ") ;
+        return (-1) ;
+    }
 
     queue_t* context = (queue_t*) task;
     context->next = NULL;
     context->prev = NULL;
+
     queue_append ((queue_t **) &tarefasUser,  context) ;
-    
+
     makecontext (&task->context, (void*)(*start_routine), 1, arg);
     if(task->id == 1){
         #ifdef DEBUG
@@ -99,28 +100,31 @@ int task_create (task_t *task, void (*start_routine)(void *),  void *arg) {
         #endif
     }
 
-   return task_id();     
+    return task_id();     
 }
 
 int task_switch (task_t *task){
-    
+
     task_t *ContextoAntigo;
-    
     ContextoAntigo = ContextAtual;
     ContextAtual = task;
     (ContextoAntigo)->status = 1;
     ContextAtual->status = 0;
-    #ifdef DEBUG
-    printf ("task_switch: trocando contexto %d para %d\n",ContextoAntigo->id, task->id) ;
-    #endif
+
+    // #ifdef DEBUG
+    // printf ("task_switch: trocando contexto %d para %d\n",ContextoAntigo->id, task->id) ;
+    // #endif
+
     swapcontext (&ContextoAntigo->context,&task->context) ;
     return task_id(); 
 }
 
 void task_exit (int exit_code){
+
     #ifdef DEBUG
     printf ("task_exit: tarefa %d sendo encerrada\n", ContextAtual->id) ;
     #endif
+    
     ContextAtual->status = 2;
     if ( ContextAtual->id == Dispatcher.id){
         task_switch(&ContextMain);
@@ -135,14 +139,5 @@ int task_id (){
 }
 
 void task_yield(){
-    //Se a tarefa não eh o main					//inserção faz com que pung nao seja printado
-    //if ( ContextAtual->id != 0 ){	
-    //   queue_append ((queue_t **) tarefasUser,  (queue_t*) ContextAtual) ;
-    //}
-    
-    ContextAtual->status = 0;
-//    queue_remove ((queue_t**) &tarefasUser, (queue_t*) tarefasUser) ;
-    //tarefasUser->status = 0;						//naofaz diferença (?)	
-    //ContextAtual->status = 1;
     task_switch(&Dispatcher);
 }

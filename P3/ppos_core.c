@@ -139,5 +139,7 @@ int task_id (){
 }
 
 void task_yield(){
+
+    ContextAtual->status = 1;
     task_switch(&Dispatcher);
 }

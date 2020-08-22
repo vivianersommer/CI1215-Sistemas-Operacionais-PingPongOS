@@ -21,8 +21,26 @@
 extern task_t *tarefasUser;
 
 task_t *scheduler(task_t *tarefasUser){
+   task_t *prox = tarefasUser;
+   task_t *aux = tarefasUser->next;
 
-	return tarefasUser;
+   while(aux != tarefasUser){
+      if(aux->prioridadeDinamica <= prox->prioridadeDinamica){
+         prox = aux; //coloca a prox como a que tem a maior prioridade dinamica
+      }
+      aux = aux->next;
+   }
+   
+   aux = tarefasUser;
+   while(tarefasUser->next != aux){
+      if(tarefasUser->id != prox->id){
+         tarefasUser->prioridadeDinamica = tarefasUser->prioridadeDinamica - 1; //envelhece a não prioritaria
+      }
+      tarefasUser = tarefasUser->next;
+   }
+
+   prox->prioridadeDinamica = prox->prioridadeEstatica; //fica nova dnv
+	return prox;
 }
 
 void dispatcher () {   

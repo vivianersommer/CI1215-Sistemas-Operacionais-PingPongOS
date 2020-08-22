@@ -19,7 +19,7 @@ void Body (void * arg)
 
   for (i=0; i<10; i++)
   {
-    printf ("%s: %d\n", (char *) arg, i) ;
+    printf ("%s: %d (prioridade %d) \n", (char *) arg, i,task_getprio(NULL)) ;
     task_yield ();
   }
   printf ("%s: fim\n", (char *) arg) ;

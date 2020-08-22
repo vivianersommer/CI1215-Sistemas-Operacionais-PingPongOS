@@ -143,12 +143,13 @@ void task_yield(){
 }
 
 void task_setprio (task_t *task, int prio){
-    task->prioridade = prio;
+    task->prioridadeEstatica = prio;
+    task->prioridadeDinamica = prio;
 }
 
 int task_getprio (task_t *task){
     if(task == NULL){
-        return (int) *(&ContextAtual->prioridade);
+        return (int) *(&ContextAtual->prioridadeEstatica);
     }
-    return task->prioridade;
+    return task->prioridadeEstatica;
 }

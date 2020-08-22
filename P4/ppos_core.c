@@ -148,7 +148,7 @@ void task_setprio (task_t *task, int prio){
 
 int task_getprio (task_t *task){
     if(task == NULL){
-        return tarefasUser->prioridade;
+        return (int) *(&ContextAtual->prioridade);
     }
     return task->prioridade;
 }

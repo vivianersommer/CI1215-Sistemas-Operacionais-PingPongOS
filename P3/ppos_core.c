@@ -55,6 +55,7 @@ void ppos_init (){
     printf ("ppos_init: criou tarefa %d - MAIN \n", ContextAtual->id) ;
     #endif
 
+    Dispatcher.status = 1;
     //Cria tarefa dispatcher
     task_create(&Dispatcher, dispatcher, NULL);
 
@@ -71,7 +72,7 @@ int task_create (task_t *task, void (*start_routine)(void *),  void *arg) {
       (&task->context)->uc_stack.ss_size = STACKSIZE ;
       (&task->context)->uc_stack.ss_flags = 0 ;
       (&task->context)->uc_link = 0 ;
-	  *(&task->id) = i++;
+      *(&task->id) = i++;
       task->status = 0;
    }
    else
@@ -119,23 +120,21 @@ int task_switch (task_t *task){
 }
 
 void task_exit (int exit_code){
+
+
+/* NUNCA EXECUTA ESSA PARTE COM CODE = 2 (?) */     
+    if ( exit_code == 2 ){
      #ifdef DEBUG
      printf ("task_exit: tarefa %d sendo encerrada\n", ContextAtual->id) ;
      #endif
-
-     dispatcher(tarefasUser);
-    (ContextAtual)->status = 2;
-    if ( tarefasUser->status == 2 ){
-    	printf(" EXITCODE %d ", exit_code);
-    	(ContextAtual)->status = 2;
-    	dispatcher(tarefasUser);
-        //task_switch(&Dispatcher);
-    }
-    else {
+//    	(ContextAtual)->status = 2;
+//   	dispatcher(tarefasUser);
         task_switch(&ContextMain);
     }
-    (ContextAtual)->status = 2;
-    task_switch(&ContextMain);
+    else {
+	printf("EXIT CODE %d ", exit_code);
+        dispatcher(tarefasUser);
+    }
 }
 
 int task_id (){
@@ -143,11 +142,14 @@ int task_id (){
 }
 
 void task_yield(){
-    //Se a tarefa não eh o main
-    if ( ContextAtual->id != 0 ){	
-       queue_append ((queue_t **) tarefasUser,  (queue_t*) ContextAtual) ;
-    }
-    ContextAtual->status = 1;
+    //Se a tarefa não eh o main					//inserção faz com que pung nao seja printado
+    //if ( ContextAtual->id != 0 ){	
+    //   queue_append ((queue_t **) tarefasUser,  (queue_t*) ContextAtual) ;
+    //}
+    
+    ContextAtual->status = 0;
+//    queue_remove ((queue_t**) &tarefasUser, (queue_t*) tarefasUser) ;
+    //tarefasUser->status = 0;						//naofaz diferença (?)	
+    //ContextAtual->status = 1;
     task_switch(&Dispatcher);
 }
-

@@ -18,14 +18,16 @@ void dispatcher () {
       task_t *prox = scheduler(tarefasUser);
       if(prox != NULL){
          queue_remove ((queue_t**) &tarefasUser, (queue_t*) prox) ;
-	      prox->status = 1;
+	      //prox->status = 1;
          task_switch (prox);
          switch (prox->status){
             case (0):
                queue_append((queue_t**) &tarefasUser, (queue_t*) prox);
                break;
             case (1):
+               queue_remove ((queue_t**) &tarefasUser, (queue_t*) prox) ;
                queue_append((queue_t**) &tarefasUser, (queue_t*) prox);
+
                break;
             default:
                queue_remove ((queue_t**) &tarefasUser, (queue_t*) prox) ;

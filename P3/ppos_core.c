@@ -51,9 +51,9 @@ void ppos_init (){
     ContextMain.prev = NULL;
     ContextAtual = &ContextMain;
 
-    #ifdef DEBUG
-    printf ("ppos_init: criou tarefa %d - MAIN \n", ContextAtual->id) ;
-    #endif
+    // #ifdef DEBUG
+    // printf ("ppos_init: criou tarefa %d - MAIN \n", ContextAtual->id) ;
+    // #endif
 
     Dispatcher.status = 1;
     //Cria tarefa dispatcher
@@ -89,16 +89,16 @@ int task_create (task_t *task, void (*start_routine)(void *),  void *arg) {
     queue_append ((queue_t **) &tarefasUser,  context) ;
 
     makecontext (&task->context, (void*)(*start_routine), 1, arg);
-    if(task->id == 1){
-        #ifdef DEBUG
-        printf ("task_create: criou tarefa %d - DISPACHER\n", task->id) ;
-        #endif
-    }
-    else{
-        #ifdef DEBUG
-        printf ("task_create: criou tarefa %d\n", task->id) ;
-        #endif
-    }
+    // if(task->id == 1){
+    //     #ifdef DEBUG
+    //     printf ("task_create: criou tarefa %d - DISPACHER\n", task->id) ;
+    //     #endif
+    // }
+    // else{
+    //     #ifdef DEBUG
+    //     printf ("task_create: criou tarefa %d\n", task->id) ;
+    //     #endif
+    // }
 
     return task_id();     
 }
@@ -121,9 +121,9 @@ int task_switch (task_t *task){
 
 void task_exit (int exit_code){
 
-    #ifdef DEBUG
-    printf ("task_exit: tarefa %d sendo encerrada\n", ContextAtual->id) ;
-    #endif
+    // #ifdef DEBUG
+    // printf ("task_exit: tarefa %d sendo encerrada\n", ContextAtual->id) ;
+    // #endif
     
     ContextAtual->status = 2;
     if (( ContextAtual->id == Dispatcher.id )){

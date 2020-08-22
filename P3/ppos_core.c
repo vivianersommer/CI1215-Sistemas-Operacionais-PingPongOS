@@ -55,6 +55,7 @@ void ppos_init (){
     printf ("ppos_init: criou tarefa %d - MAIN \n", ContextAtual->id) ;
     #endif
 
+    Dispatcher.status = 1;
     //Cria tarefa dispatcher
     task_create(&Dispatcher, dispatcher, NULL);
     // queue_remove((queue_t**) &tarefasUser, (queue_t*) Dispatcher) ;
@@ -72,7 +73,7 @@ int task_create (task_t *task, void (*start_routine)(void *),  void *arg) {
       (&task->context)->uc_stack.ss_size = STACKSIZE ;
       (&task->context)->uc_stack.ss_flags = 0 ;
       (&task->context)->uc_link = 0 ;
-	  *(&task->id) = i++;
+      *(&task->id) = i++;
       task->status = 0;
    }
    else
@@ -134,11 +135,14 @@ int task_id (){
 }
 
 void task_yield(){
-    //Se a tarefa não eh o main
-    if ( ContextAtual->id != 0 ){	
-       queue_append ((queue_t **) tarefasUser,  (queue_t*) ContextAtual) ;
-    }
-    ContextAtual->status = 1;
+    //Se a tarefa não eh o main					//inserção faz com que pung nao seja printado
+    //if ( ContextAtual->id != 0 ){	
+    //   queue_append ((queue_t **) tarefasUser,  (queue_t*) ContextAtual) ;
+    //}
+    
+    ContextAtual->status = 0;
+//    queue_remove ((queue_t**) &tarefasUser, (queue_t*) tarefasUser) ;
+    //tarefasUser->status = 0;						//naofaz diferença (?)	
+    //ContextAtual->status = 1;
     task_switch(&Dispatcher);
 }
-

@@ -7,6 +7,17 @@
 #define STACKSIZE 32768	
 #define N 100
 
+/*
+
+	GRR20182564 Viviane da Rosa Sommer
+	GRR20185174 Luzia Millena Santos Silva
+
+    Implementada as seguintes funções:
+    scheduler  - Escolhe qual a próxima tarefa a ser executada
+    dispatcher - Realiza a troca de contexto entre tarefas **(ela também é uma tarefa)
+
+*/
+
 extern task_t *tarefasUser;
 
 task_t *scheduler(task_t *tarefasUser){

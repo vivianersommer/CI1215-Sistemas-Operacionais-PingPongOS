@@ -22,6 +22,9 @@ task_t ContextMain, *ContextAtual ,*tarefasUser, Dispatcher;
     task_switch  - Transfere o processador para outra tarefa
     task_exit - Termina a tarefa corrente
     task_id - Informa o identificador da tarefa corrente
+    task_yield - Faz a troca de contexto para o dispatcher
+    task_setprio - Ajusta a prioridade estática
+    task_getprio - Recebe a prioridade estática
 
 */
 
@@ -137,4 +140,12 @@ int task_id (){
 void task_yield(){
     ContextAtual->status = 1;
     task_switch(&Dispatcher);
+}
+
+void task_setprio (task_t *task, int prio){
+
+}
+
+int task_getprio (task_t *task){
+    
 }

@@ -126,7 +126,7 @@ void task_exit (int exit_code){
     #endif
     
     ContextAtual->status = 2;
-    if ( ContextAtual->id == Dispatcher.id){
+    if (( ContextAtual->id == Dispatcher.id )){
         task_switch(&ContextMain);
     }
     else {
@@ -141,5 +141,9 @@ int task_id (){
 void task_yield(){
 
     ContextAtual->status = 1;
+
     task_switch(&Dispatcher);
+    if (( ContextAtual->id == Dispatcher.id )){
+        task_switch(&ContextMain);
+    }
 }

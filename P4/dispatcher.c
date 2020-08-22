@@ -21,6 +21,7 @@
 extern task_t *tarefasUser;
 
 task_t *scheduler(task_t *tarefasUser){
+   
 	return tarefasUser;
 }
 

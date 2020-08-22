@@ -143,9 +143,9 @@ void task_yield(){
 }
 
 void task_setprio (task_t *task, int prio){
-
+    task->prioridade = prio;
 }
 
 int task_getprio (task_t *task){
-    
+    return task->prioridade;
 }

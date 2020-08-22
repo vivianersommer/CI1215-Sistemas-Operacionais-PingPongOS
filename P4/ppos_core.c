@@ -49,7 +49,7 @@ void ppos_init (){
         perror ("Erro na criação da pilha: ");
         exit (1);
     }
-    
+    task_setprio(&ContextMain,0);
     ContextMain.next = NULL;
     ContextMain.prev = NULL;
     ContextAtual = &ContextMain;
@@ -148,8 +148,7 @@ void task_setprio (task_t *task, int prio){
 
 int task_getprio (task_t *task){
     if(task == NULL){
-        return 0;
+        return tarefasUser->prioridade;
     }
-
     return task->prioridade;
 }

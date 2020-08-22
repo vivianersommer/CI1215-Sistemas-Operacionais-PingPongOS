@@ -57,6 +57,7 @@ void ppos_init (){
 
     //Cria tarefa dispatcher
     task_create(&Dispatcher, dispatcher, NULL);
+    // queue_remove((queue_t**) &tarefasUser, (queue_t*) Dispatcher) ;
 
 }
 
@@ -79,9 +80,6 @@ int task_create (task_t *task, void (*start_routine)(void *),  void *arg) {
       perror ("Erro na criação da pilha: ") ;
       return (-1) ;
    }
-    getcontext(&ContextAtual->context);
-    
-    ContextAtual = &ContextMain; 
 
     queue_t* context = (queue_t*) task;
     context->next = NULL;
@@ -111,31 +109,24 @@ int task_switch (task_t *task){
     ContextAtual = task;
     (ContextoAntigo)->status = 1;
     ContextAtual->status = 0;
-    // #ifdef DEBUG
-    // printf ("task_switch: trocando contexto %d para %d\n",ContextoAntigo->id, task->id) ;
-    // #endif
+    #ifdef DEBUG
+    printf ("task_switch: trocando contexto %d para %d\n",ContextoAntigo->id, task->id) ;
+    #endif
     swapcontext (&ContextoAntigo->context,&task->context) ;
     return task_id(); 
 }
 
 void task_exit (int exit_code){
-     #ifdef DEBUG
-     printf ("task_exit: tarefa %d sendo encerrada\n", ContextAtual->id) ;
-     #endif
-
-     dispatcher(tarefasUser);
-    (ContextAtual)->status = 2;
-    if ( tarefasUser->status == 2 ){
-    	printf(" EXITCODE %d ", exit_code);
-    	(ContextAtual)->status = 2;
-    	dispatcher(tarefasUser);
-        //task_switch(&Dispatcher);
-    }
-    else {
+    #ifdef DEBUG
+    printf ("task_exit: tarefa %d sendo encerrada\n", ContextAtual->id) ;
+    #endif
+    ContextAtual->status = 2;
+    if ( ContextAtual->id == Dispatcher.id){
         task_switch(&ContextMain);
     }
-    (ContextAtual)->status = 2;
-    task_switch(&ContextMain);
+    else {
+        task_switch(&Dispatcher);
+    }
 }
 
 int task_id (){

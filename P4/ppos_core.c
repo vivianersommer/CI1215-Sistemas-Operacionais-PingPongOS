@@ -143,8 +143,10 @@ void task_yield(){
 }
 
 void task_setprio (task_t *task, int prio){
-    task->prioridadeEstatica = prio;
-    task->prioridadeDinamica = prio;
+    if(task && prio > -20 && prio < 20 ){ 
+        task->prioridadeEstatica = prio;
+        task->prioridadeDinamica = prio;
+    }
 }
 
 int task_getprio (task_t *task){

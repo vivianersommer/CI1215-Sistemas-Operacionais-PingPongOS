@@ -21,7 +21,7 @@
 extern task_t *tarefasUser;
 
 task_t *scheduler(task_t *tarefasUser){
-   
+
 	return tarefasUser;
 }
 
@@ -39,7 +39,6 @@ void dispatcher () {
             case (1):
                queue_remove ((queue_t**) &tarefasUser, (queue_t*) prox) ;
                queue_append((queue_t**) &tarefasUser, (queue_t*) prox);
-
                break;
             default:
                queue_remove ((queue_t**) &tarefasUser, (queue_t*) prox) ;

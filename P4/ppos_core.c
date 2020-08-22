@@ -88,7 +88,7 @@ int task_create (task_t *task, void (*start_routine)(void *),  void *arg) {
     queue_t* context = (queue_t*) task;
     context->next = NULL;
     context->prev = NULL;
-
+    task_setprio(task,0);
     queue_append ((queue_t **) &tarefasUser,  context) ;
 
     makecontext (&task->context, (void*)(*start_routine), 1, arg);
@@ -147,5 +147,9 @@ void task_setprio (task_t *task, int prio){
 }
 
 int task_getprio (task_t *task){
+    if(task == NULL){
+        return 0;
+    }
+
     return task->prioridade;
 }

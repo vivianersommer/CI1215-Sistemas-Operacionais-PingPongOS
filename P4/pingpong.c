@@ -16,15 +16,35 @@ task_t ContextMain, *ContextAtual ,*tarefasUser, Dispatcher;
 	GRR20182564 Viviane da Rosa Sommer
 	GRR20185174 Luzia Millena Santos Silva
 
-    Implementada as seguintes funções:
-    ppos_init  - Inicializa o sistema
-    task_create - Cria uma nova tarefa
-    task_switch  - Transfere o processador para outra tarefa
-    task_exit - Termina a tarefa corrente
-    task_id - Informa o identificador da tarefa corrente
-    task_yield - Faz a troca de contexto para o dispatcher
-    task_setprio - Ajusta a prioridade estática
-    task_getprio - Recebe a prioridade estática
+    Arquivo pingpong.c:
+
+        Implementada as seguintes funções:
+        ppos_init  - Inicializa o sistema
+        task_create - Cria uma nova tarefa
+        task_switch  - Transfere o processador para outra tarefa
+        task_exit - Termina a tarefa corrente
+        task_id - Informa o identificador da tarefa corrente
+        task_yield - Faz a troca de contexto para o dispatcher
+        task_setprio - Ajusta a prioridade estática
+        task_getprio - Recebe a prioridade estática
+        scheduler  - Escolhe qual a próxima tarefa a ser executada
+        dispatcher - Realiza a troca de contexto entre tarefas **(ela também é uma tarefa)
+
+    Arquivo ppos_data.h
+        Adicionado na estrutura task_t os seguintes campos:
+        status : estado da tarefa
+        prioridadeEstatica : nível de prioridade estatica da tarefa
+        prioridadeDinamica : nível de prioridade dinamica da tarefa 
+
+    Compilado com : cc -Wall queue.c pingpong.c pingpong-scheduler.c -g
+
+    Necessário ter os seguintes na pasta: 
+        pingpong.c
+        pingpong-scheduler.c
+        ppos.h
+        ppos_data.h
+        queue.c
+        queue.h
 
 */
 

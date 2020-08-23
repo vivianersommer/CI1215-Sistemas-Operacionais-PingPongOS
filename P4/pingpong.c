@@ -30,7 +30,8 @@ task_t ContextMain, *ContextAtual ,*tarefasUser, Dispatcher;
         scheduler  - Escolhe qual a próxima tarefa a ser executada
         dispatcher - Realiza a troca de contexto entre tarefas **(ela também é uma tarefa)
 
-    Arquivo ppos_data.h
+    Arquivo ppos_data.h:
+
         Adicionado na estrutura task_t os seguintes campos:
         status : estado da tarefa
         prioridadeEstatica : nível de prioridade estatica da tarefa
@@ -39,6 +40,7 @@ task_t ContextMain, *ContextAtual ,*tarefasUser, Dispatcher;
     Compilado com : cc -Wall queue.c pingpong.c pingpong-scheduler.c -g
 
     Necessário ter os seguintes na pasta: 
+    
         pingpong.c
         pingpong-scheduler.c
         ppos.h

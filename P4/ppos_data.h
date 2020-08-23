@@ -14,9 +14,9 @@
 
 typedef enum Status
 {
- Pronta,
- Suspensa, 
- Terminada
+  Pronta, //0
+  Suspensa,  //1
+  Terminada  //2
 } Status; 
 
 typedef struct task_t

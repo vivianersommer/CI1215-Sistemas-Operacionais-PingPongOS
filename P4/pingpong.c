@@ -11,42 +11,44 @@ char *stack ;
 int i=1;
 task_t ContextMain, *ContextAtual ,*tarefasUser, Dispatcher;
 
-/*
+/*  P4
 
-	GRR20182564 Viviane da Rosa Sommer
-	GRR20185174 Luzia Millena Santos Silva
+    Alunas: 
+    
+        GRR20182564 Viviane da Rosa Sommer
+        GRR20185174 Luzia Millena Santos Silva
 
     Arquivo pingpong.c:
 
         Implementada as seguintes funções:
-        ppos_init  - Inicializa o sistema
-        task_create - Cria uma nova tarefa
-        task_switch  - Transfere o processador para outra tarefa
-        task_exit - Termina a tarefa corrente
-        task_id - Informa o identificador da tarefa corrente
-        task_yield - Faz a troca de contexto para o dispatcher
-        task_setprio - Ajusta a prioridade estática
-        task_getprio - Recebe a prioridade estática
-        scheduler  - Escolhe qual a próxima tarefa a ser executada
-        dispatcher - Realiza a troca de contexto entre tarefas **(ela também é uma tarefa)
+            1 -  ppos_init  - Inicializa o sistema
+            2 -  task_create - Cria uma nova tarefa
+            3 -  task_switch  - Transfere o processador para outra tarefa
+            4 -  task_exit - Termina a tarefa corrente
+            5 -  task_id - Informa o identificador da tarefa corrente
+            6 -  task_yield - Faz a troca de contexto para o dispatcher
+            7 -  task_setprio - Ajusta a prioridade estática
+            8 -  task_getprio - Recebe a prioridade estática
+            9 -  scheduler  - Escolhe qual a próxima tarefa a ser executada
+            10 - dispatcher - Realiza a troca de contexto entre tarefas **(ela também é uma tarefa)
 
     Arquivo ppos_data.h:
 
         Adicionado na estrutura task_t os seguintes campos:
-        status : estado da tarefa
-        prioridadeEstatica : nível de prioridade estatica da tarefa
-        prioridadeDinamica : nível de prioridade dinamica da tarefa 
+            1 -  status : estado da tarefa
+            2 -  prioridadeEstatica : nível de prioridade estatica da tarefa
+            3 -  prioridadeDinamica : nível de prioridade dinamica da tarefa 
 
     Compilado com : cc -Wall queue.c pingpong.c pingpong-scheduler.c 
 
     Necessário ter os seguintes arquivos na pasta: 
 
-        pingpong.c
-        pingpong-scheduler.c
-        ppos.h
-        ppos_data.h
-        queue.c
-        queue.h
+            1 -  pingpong.c
+            2 -  pingpong-scheduler.c
+            3 -  ppos.h
+            4 -  ppos_data.h
+            5 -  queue.c
+            6 -  queue.h
 
 */
 
@@ -211,7 +213,7 @@ void dispatcher () {
       if(prox != NULL){ //se o scheduler retorna uma tarefa, retira ela da fila e realiza task_switch
          queue_remove ((queue_t**) &tarefasUser, (queue_t*) prox) ;
          task_switch (prox);
-         switch (prox->status){  //analize dos status das tarefas
+         switch (prox->status){  //análize dos status das tarefas
             case (0): //PRONTA
                queue_append((queue_t**) &tarefasUser, (queue_t*) prox);
                break;

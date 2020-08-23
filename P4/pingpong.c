@@ -37,10 +37,10 @@ task_t ContextMain, *ContextAtual ,*tarefasUser, Dispatcher;
         prioridadeEstatica : nível de prioridade estatica da tarefa
         prioridadeDinamica : nível de prioridade dinamica da tarefa 
 
-    Compilado com : cc -Wall queue.c pingpong.c pingpong-scheduler.c -g
+    Compilado com : cc -Wall queue.c pingpong.c pingpong-scheduler.c 
 
-    Necessário ter os seguintes na pasta: 
-    
+    Necessário ter os seguintes arquivos na pasta: 
+
         pingpong.c
         pingpong-scheduler.c
         ppos.h
@@ -69,7 +69,7 @@ void ppos_init (){
     }
     else{
         perror ("Erro na criação da pilha: ");
-        exit (1);
+        exit (-1);
     }
     task_setprio(&ContextMain,0);
     ContextMain.next = NULL;
@@ -159,20 +159,24 @@ int task_id (){
     return (int) *(&ContextAtual->id);
 }
 
-void task_yield(){
+void task_yield(){  //Realiza a troca de contexto para o dispatcher
     ContextAtual->status = 1;
     task_switch(&Dispatcher);
 }
 
 void task_setprio (task_t *task, int prio){
-    if(task && prio > -20 && prio < 20 ){ 
+    if(task && prio > -20 && prio < 20 ){ // Analiza se o tarefa existe, e se o valor passado está dentro dos limites 
         task->prioridadeEstatica = prio;
         task->prioridadeDinamica = prio;
+    }
+    else{
+        perror ("Erro ao setar a prioridade da tarefa: ");
+        exit (-1);
     }
 }
 
 int task_getprio (task_t *task){
-    if(task == NULL){
+    if(task == NULL){  //se não for enviada uma tarefa, retorna o valor da prioridade do Contexto Atual
         return (int) *(&ContextAtual->prioridadeEstatica);
     }
     return task->prioridadeEstatica;
@@ -197,30 +201,29 @@ task_t *scheduler(task_t *tarefasUser){
       tarefasUser = tarefasUser->next;
    }
 
-   prox->prioridadeDinamica = prox->prioridadeEstatica; //fica nova dnv
+   prox->prioridadeDinamica = prox->prioridadeEstatica; //a prioridade dinamica volta ao valor original da prioridade estatica
 	return prox;
 }
 
 void dispatcher () {   
-   while( queue_size( (queue_t*)tarefasUser) > 1) {
+   while( queue_size( (queue_t*)tarefasUser) > 1) { //analiza se existe algum elemento na fila de tarefas prontas
       task_t *prox = scheduler(tarefasUser);
-      if(prox != NULL){
+      if(prox != NULL){ //se o scheduler retorna uma tarefa, retira ela da fila e realiza task_switch
          queue_remove ((queue_t**) &tarefasUser, (queue_t*) prox) ;
-	      //prox->status = 1;
          task_switch (prox);
-         switch (prox->status){
-            case (0):
+         switch (prox->status){  //analize dos status das tarefas
+            case (0): //PRONTA
                queue_append((queue_t**) &tarefasUser, (queue_t*) prox);
                break;
-            case (1):
+            case (1):  //SUSPENSA
                queue_remove ((queue_t**) &tarefasUser, (queue_t*) prox) ;
                queue_append((queue_t**) &tarefasUser, (queue_t*) prox);
                break;
-            default:
+            default:  //FINALIZADA
                queue_remove ((queue_t**) &tarefasUser, (queue_t*) prox) ;
                break;
          }
       }
    }
-   task_exit(0);
+   task_exit(0);  //quando a fila esvazia, encerra o dispatcher, pois ele também é uma tarefa
 }

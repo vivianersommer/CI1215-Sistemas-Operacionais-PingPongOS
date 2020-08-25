@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <assert.h>
 #include <signal.h>
+#include <sys/time.h>
 #include "ppos.h"
 #include "ppos_data.h"
 
@@ -87,9 +88,9 @@ void ppos_init (){
     ContextMain.prev = NULL;
     ContextAtual = &ContextMain;
 
-    // #ifdef DEBUG
-    // printf ("ppos_init: criou tarefa %d - MAIN \n", ContextAtual->id) ;
-    // #endif
+    #ifdef DEBUG
+    printf ("ppos_init: criou tarefa %d - MAIN \n", ContextAtual->id) ;
+    #endif
 
     Dispatcher.status = 1;
     Dispatcher.tipoTarefa = 0; // tarefa de sistema
@@ -114,7 +115,7 @@ int task_create (task_t *task, void (*start_routine)(void *),  void *arg) {
         *(&task->id) = i++;
         task->status = 0;
         if(task->id != 1){
-            task.tipoTarefa = 1; //tarefa de usuário
+            task->tipoTarefa = 1; //tarefa de usuário
         }
     }
     else
@@ -130,16 +131,16 @@ int task_create (task_t *task, void (*start_routine)(void *),  void *arg) {
     queue_append ((queue_t **) &tarefasUser,  context) ;
 
     makecontext (&task->context, (void*)(*start_routine), 1, arg);
-    // if(task->id == 1){
-    //     #ifdef DEBUG
-    //     printf ("task_create: criou tarefa %d - DISPACHER\n", task->id) ;
-    //     #endif
-    // }
-    // else{
-    //     #ifdef DEBUG
-    //     printf ("task_create: criou tarefa %d\n", task->id) ;
-    //     #endif
-    // }
+    if(task->id == 1){
+        #ifdef DEBUG
+        printf ("task_create: criou tarefa %d - DISPACHER\n", task->id) ;
+        #endif
+    }
+    else{
+        #ifdef DEBUG
+        printf ("task_create: criou tarefa %d\n", task->id) ;
+        #endif
+    }
 
     return task_id();     
 }
@@ -152,9 +153,9 @@ int task_switch (task_t *task){
     (ContextoAntigo)->status = 1;
     ContextAtual->status = 0;
 
-    // #ifdef DEBUG
-    // printf ("task_switch: trocando contexto %d para %d\n",ContextoAntigo->id, task->id) ;
-    // #endif
+    #ifdef DEBUG
+    printf ("task_switch: trocando contexto %d para %d\n",ContextoAntigo->id, task->id) ;
+    #endif
 
     swapcontext (&ContextoAntigo->context,&task->context) ;
     return task_id(); 
@@ -244,6 +245,11 @@ void dispatcher () {
    task_exit(0);  //quando a fila esvazia, encerra o dispatcher, pois ele também é uma tarefa
 }
 
+void tratador (int signum)
+{
+   printf ("Recebi o sinal %d\n", signum) ;
+}
+
 void temporizador(){
     action.sa_handler = tratador ;
     sigemptyset (&action.sa_mask) ;
@@ -271,8 +277,4 @@ void temporizador(){
     while (1) ;
 }
 
-void tratador (int signum)
-{
-   printf ("Recebi o sinal %d\n", signum) ;
-}
 

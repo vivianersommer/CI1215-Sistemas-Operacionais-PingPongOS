@@ -53,6 +53,10 @@ typedef struct task_t
    int prioridadeEstatica; // nível de prioridade estatica da tarefa 
    int prioridadeDinamica; // nível de prioridade dinamica da tarefa 
    int tipoTarefa; // 0 : tarefa de sistema e 1 : tarefa de usuário
+   int horarioInicio; // salva a hora q inicia a tarefa
+   int horarioFim; // salva a hora q finaliza a tarefa
+   int horarioProcessador; // salva o tempo de execução
+   int ativacoes; //quantas vezes trocou de contexto
    // ... (outros campos serão adicionados mais tarde)
 } task_t ;
 

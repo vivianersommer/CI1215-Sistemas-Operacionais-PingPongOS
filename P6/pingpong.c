@@ -18,7 +18,7 @@ struct itimerval timer ;
 
 char *stack ;
 int i=1;
-int quantum ;
+int quantum , relogio;
 task_t ContextMain, *ContextAtual ,*tarefasUser, Dispatcher;
 
 /*  P4
@@ -79,6 +79,9 @@ void ppos_init (){
         ContextMain.id = 0;
         ContextMain.status = 0;
         ContextMain.tipoTarefa = 1; //tarefa de usuário
+        ContextMain.horarioInicio = systime();
+        ContextMain.ativacoes = 0;
+        ContextMain.horarioProcessador = 0;
     }
     else{
         perror ("Erro na criação da pilha: ");
@@ -115,6 +118,9 @@ int task_create (task_t *task, void (*start_routine)(void *),  void *arg) {
         (&task->context)->uc_link = 0 ;
         *(&task->id) = i++;
         task->status = 0;
+        task->horarioInicio = systime();
+        task->ativacoes = 0 ;
+        task->horarioProcessador = 0;
         if(task->id != 1){
             task->tipoTarefa = 1; //tarefa de usuário
         }
@@ -163,13 +169,24 @@ int task_switch (task_t *task){
 }
 
 void task_exit (int exit_code){
-
-    // #ifdef DEBUG
-    // printf ("task_exit: tarefa %d sendo encerrada\n", ContextAtual->id) ;
-    // #endif
     
     ContextAtual->status = 2;
+    ContextAtual->horarioFim = systime();
+
+    #ifdef DEBUG
+    printf ("Task %d exit: execution time %d ms, processor time %d ms, %d activations\n", 
+            ContextAtual->id, (ContextAtual->horarioFim - ContextAtual->horarioInicio),
+            ContextAtual->horarioProcessador , ContextAtual->ativacoes) ;
+    #endif
+
     task_switch(&Dispatcher);
+
+    Dispatcher.horarioFim = systime();
+    #ifdef DEBUG
+    printf ("Task %d exit: execution time %d ms, processor time %d ms, %d activations\n", 
+            Dispatcher.id, (Dispatcher.horarioFim - Dispatcher.horarioInicio),
+            Dispatcher.horarioProcessador , Dispatcher.ativacoes) ;
+    #endif
     task_switch(&ContextMain);
 }
 
@@ -229,7 +246,11 @@ void dispatcher () {
       if(prox != NULL){ //se o scheduler retorna uma tarefa, retira ela da fila e realiza task_switch
          queue_remove ((queue_t**) &tarefasUser, (queue_t*) prox) ;
          quantum = 20;
+         prox->ativacoes = prox->ativacoes + 1;
+         int processadorInicio = systime();
          task_switch (prox);
+         Dispatcher.ativacoes = Dispatcher.ativacoes + 1;
+         prox->horarioProcessador = prox->horarioProcessador + (systime() - processadorInicio);
          switch (prox->status){  //análize dos status das tarefas
             case (0): //PRONTA
                queue_append((queue_t**) &tarefasUser, (queue_t*) prox);
@@ -249,6 +270,7 @@ void dispatcher () {
 
 void tratador (int signum)
 {
+    relogio ++;
     if(ContextAtual->tipoTarefa == 1){
         quantum = quantum - 1;
         if(quantum == 0){
@@ -279,6 +301,10 @@ void temporizador(){
         perror ("Erro em setitimer: ") ;
         exit (1) ;
     }
+}
+
+unsigned int systime () {
+    return relogio;
 }
 
 

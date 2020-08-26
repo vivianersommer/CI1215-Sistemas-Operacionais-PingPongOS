@@ -18,7 +18,8 @@ struct itimerval timer ;
 
 char *stack ;
 int i=1;
-int quantum , relogio;
+int quantum ; 
+unsigned int relogio;
 task_t ContextMain, *ContextAtual ,*tarefasUser, Dispatcher;
 
 /*  P4

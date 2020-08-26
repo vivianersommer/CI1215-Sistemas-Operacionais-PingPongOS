@@ -18,6 +18,7 @@ struct itimerval timer ;
 
 char *stack ;
 int i=1;
+int quantum ;
 task_t ContextMain, *ContextAtual ,*tarefasUser, Dispatcher;
 
 /*  P4
@@ -153,9 +154,9 @@ int task_switch (task_t *task){
     (ContextoAntigo)->status = 1;
     ContextAtual->status = 0;
 
-    #ifdef DEBUG
-    printf ("task_switch: trocando contexto %d para %d\n",ContextoAntigo->id, task->id) ;
-    #endif
+    // #ifdef DEBUG
+    // printf ("task_switch: trocando contexto %d para %d\n",ContextoAntigo->id, task->id) ;
+    // #endif
 
     swapcontext (&ContextoAntigo->context,&task->context) ;
     return task_id(); 
@@ -227,6 +228,7 @@ void dispatcher () {
       task_t *prox = scheduler(tarefasUser);
       if(prox != NULL){ //se o scheduler retorna uma tarefa, retira ela da fila e realiza task_switch
          queue_remove ((queue_t**) &tarefasUser, (queue_t*) prox) ;
+         quantum = 20;
          task_switch (prox);
          switch (prox->status){  //análize dos status das tarefas
             case (0): //PRONTA
@@ -247,7 +249,12 @@ void dispatcher () {
 
 void tratador (int signum)
 {
-   printf ("Recebi o sinal %d\n", signum) ;
+    if(ContextAtual->tipoTarefa == 1){
+        quantum = quantum - 1;
+        if(quantum == 0){
+            task_switch(&Dispatcher);
+        }
+    }
 }
 
 void temporizador(){
@@ -261,10 +268,10 @@ void temporizador(){
     }
 
     // ajusta valores do temporizador
-    timer.it_value.tv_usec = 0 ;      // primeiro disparo, em micro-segundos
-    timer.it_value.tv_sec  = 3 ;      // primeiro disparo, em segundos
-    timer.it_interval.tv_usec = 0 ;   // disparos subsequentes, em micro-segundos
-    timer.it_interval.tv_sec  = 1 ;   // disparos subsequentes, em segundos
+    timer.it_value.tv_usec = 1000 ;      // primeiro disparo, em micro-segundos
+    timer.it_value.tv_sec  = 0 ;      // primeiro disparo, em segundos
+    timer.it_interval.tv_usec = 1000 ;   // disparos subsequentes, em micro-segundos
+    timer.it_interval.tv_sec  = 0 ;   // disparos subsequentes, em segundos
 
     // arma o temporizador ITIMER_REAL (vide man setitimer)
     if (setitimer (ITIMER_REAL, &timer, 0) < 0)
@@ -272,9 +279,6 @@ void temporizador(){
         perror ("Erro em setitimer: ") ;
         exit (1) ;
     }
-
-    // laco vazio
-    while (1) ;
 }
 
 

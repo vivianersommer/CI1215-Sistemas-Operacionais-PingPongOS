@@ -180,15 +180,11 @@ void task_exit (int exit_code){
             ContextAtual->horarioProcessador , ContextAtual->ativacoes) ;
     #endif
 
-    task_switch(&Dispatcher);
-
-    Dispatcher.horarioFim = systime();
-    #ifdef DEBUG
-    printf ("Task %d exit: execution time %d ms, processor time %d ms, %d activations\n", 
-            Dispatcher.id, (Dispatcher.horarioFim - Dispatcher.horarioInicio),
-            Dispatcher.horarioProcessador , Dispatcher.ativacoes) ;
-    #endif
-    task_switch(&ContextMain);
+    if((*ContextAtual).id == Dispatcher.id){
+        task_switch(&ContextMain);
+    }else{
+        task_switch(&Dispatcher);
+    }
 }
 
 int task_id (){

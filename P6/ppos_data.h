@@ -60,6 +60,10 @@ typedef struct task_t
    // ... (outros campos serão adicionados mais tarde)
 } task_t ;
 
+void dispatcher () ;
+
+void temporizador() ;
+
 // estrutura que define um semáforo
 typedef struct
 {

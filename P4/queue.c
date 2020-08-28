@@ -41,7 +41,7 @@ void queue_append(queue_t **queue, queue_t *elem){
 }
 
 queue_t *queue_remove (queue_t **queue, queue_t *elem){
-	
+
 	if ( *queue == NULL ){
 		return NULL;
 	}
@@ -50,6 +50,7 @@ queue_t *queue_remove (queue_t **queue, queue_t *elem){
 	queue_t *aux = (*queue)->next;
 	while ( aux != elem ) {
 		if( aux->next == ( *queue )->next ) {
+			printf("Erro: tentou remover um elemento inexistente\n");
 			return NULL;
 		}
 		aux = aux->next;

@@ -55,6 +55,12 @@ typedef struct task_t
    // ... (outros campos serão adicionados mais tarde)
 } task_t ;
 
+void dispatcher () ;
+
+void temporizador() ;
+
+void imprime_fila(task_t *fila);
+
 // estrutura que define um semáforo
 typedef struct
 {

@@ -29,8 +29,6 @@
 // Inicializa o sistema operacional; deve ser chamada no inicio do main()
 void ppos_init () ;
 
-void dispatcher () ;
-
 // gerência de tarefas =========================================================
 
 // Cria uma nova tarefa. Retorna um ID> 0 ou erro.

@@ -64,6 +64,9 @@ void dispatcher () ;
 
 void temporizador() ;
 
+void imprime_fila(task_t *fila);
+
+
 // estrutura que define um semáforo
 typedef struct
 {

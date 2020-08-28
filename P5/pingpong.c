@@ -97,6 +97,8 @@ void ppos_init (){
     Dispatcher.tipoTarefa = 0; // tarefa de sistema
     //Cria tarefa dispatcher
     task_create(&Dispatcher, dispatcher, NULL);
+    queue_remove((queue_t**) &tarefasUser, (queue_t*) &Dispatcher);
+
 
     temporizador();
 }
@@ -129,19 +131,20 @@ int task_create (task_t *task, void (*start_routine)(void *),  void *arg) {
     context->next = NULL;
     context->prev = NULL;
     task_setprio(task,0);
-    queue_append ((queue_t **) &tarefasUser,  context) ;
 
     makecontext (&task->context, (void*)(*start_routine), 1, arg);
-    if(task->id == 1){
-        #ifdef DEBUG
-        printf ("task_create: criou tarefa %d - DISPACHER\n", task->id) ;
-        #endif
-    }
-    else{
-        #ifdef DEBUG
-        printf ("task_create: criou tarefa %d\n", task->id) ;
-        #endif
-    }
+    queue_append ((queue_t **) &tarefasUser,  context) ;
+
+    // if(task->id == 1){
+    //     #ifdef DEBUG
+    //     printf ("task_create: criou tarefa %d - DISPACHER\n", task->id) ;
+    //     #endif
+    // }
+    // else{
+    //     #ifdef DEBUG
+    //     printf ("task_create: criou tarefa %d\n", task->id) ;
+    //     #endif
+    // }
 
     return task_id();     
 }
@@ -151,7 +154,7 @@ int task_switch (task_t *task){
     task_t *ContextoAntigo;
     ContextoAntigo = ContextAtual;
     ContextAtual = task;
-    (ContextoAntigo)->status = 1;
+    ContextoAntigo->status = 1;
     ContextAtual->status = 0;
 
     // #ifdef DEBUG
@@ -169,8 +172,11 @@ void task_exit (int exit_code){
     // #endif
     
     ContextAtual->status = 2;
-    task_switch(&Dispatcher);
-    task_switch(&ContextMain);
+    if(ContextAtual->id == 1){
+        task_switch(&ContextMain);
+    }else{
+        task_switch(&Dispatcher);
+    }
 }
 
 int task_id (){
@@ -178,7 +184,10 @@ int task_id (){
 }
 
 void task_yield(){  //Realiza a troca de contexto para o dispatcher
-    ContextAtual->status = 1;
+    if(ContextAtual->id != 0){
+        ContextAtual->status = 1;
+        queue_append((queue_t**)&tarefasUser, (queue_t*)ContextAtual);
+    }
     task_switch(&Dispatcher);
 }
 
@@ -227,21 +236,10 @@ void dispatcher () {
    while( queue_size( (queue_t*)tarefasUser) > 1) { //analiza se existe algum elemento na fila de tarefas prontas
       task_t *prox = scheduler(tarefasUser);
       if(prox != NULL){ //se o scheduler retorna uma tarefa, retira ela da fila e realiza task_switch
-         queue_remove ((queue_t**) &tarefasUser, (queue_t*) prox) ;
-         quantum = 20;
-         task_switch (prox);
-         switch (prox->status){  //análize dos status das tarefas
-            case (0): //PRONTA
-               queue_append((queue_t**) &tarefasUser, (queue_t*) prox);
-               break;
-            case (1):  //SUSPENSA
-               queue_remove ((queue_t**) &tarefasUser, (queue_t*) prox) ;
-               queue_append((queue_t**) &tarefasUser, (queue_t*) prox);
-               break;
-            default:  //FINALIZADA
-               queue_remove ((queue_t**) &tarefasUser, (queue_t*) prox) ;
-               break;
-         }
+        quantum = 20;
+        // imprime_fila(tarefasUser);
+        queue_remove ((queue_t**) &tarefasUser, (queue_t*) prox) ;
+        task_switch (prox);
       }
    }
    task_exit(0);  //quando a fila esvazia, encerra o dispatcher, pois ele também é uma tarefa
@@ -251,7 +249,11 @@ void tratador (int signum)
 {
     if(ContextAtual->tipoTarefa == 1){
         quantum = quantum - 1;
-        if(quantum == 0){
+        if(quantum == 0){  
+            if(ContextAtual->id != 0){
+                ContextAtual->status = 1;
+                queue_append((queue_t**)&tarefasUser, (queue_t*)ContextAtual);
+            }
             task_switch(&Dispatcher);
         }
     }
@@ -280,5 +282,26 @@ void temporizador(){
         exit (1) ;
     }
 }
+
+void imprime_fila(task_t *tarefasUser){
+	printf("Saída gerada: ");
+	if (tarefasUser == NULL ) {
+		printf("[] \n");
+		return;	
+	}
+	printf("[");
+	task_t *aux = tarefasUser;
+	printf(" %d ",aux->id);
+	printf(" ");
+	aux = aux->next;
+	while (aux != tarefasUser){
+	printf(" %d ",aux->id);
+		aux = aux->next;
+		printf(" ");
+	} 
+	printf("] \n");
+	return;		
+}
+
 
 

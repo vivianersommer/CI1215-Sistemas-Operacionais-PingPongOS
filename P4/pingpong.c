@@ -85,6 +85,7 @@ void ppos_init (){
     Dispatcher.status = 1;
     //Cria tarefa dispatcher
     task_create(&Dispatcher, dispatcher, NULL);
+    queue_remove((queue_t**) &tarefasUser, (queue_t*) &Dispatcher);
 
 }
 
@@ -156,7 +157,7 @@ int task_id (){
 
 void task_yield(){  //Realiza a troca de contexto para o dispatcher
     if(ContextAtual->id != 0){
-        ContextAtual->status = 0;
+        ContextAtual->status = 1;
         queue_append((queue_t**)&tarefasUser, (queue_t*)ContextAtual);
     }
     task_switch(&Dispatcher);
@@ -209,6 +210,7 @@ void dispatcher () {
       task_t *prox = scheduler(tarefasUser);
       if(prox != NULL){ //se o scheduler retorna uma tarefa, retira ela da fila e realiza task_switch
         queue_remove((queue_t**) &tarefasUser, (queue_t*) prox);
+        imprime_fila(tarefasUser);
         task_switch (prox);
       }
     }

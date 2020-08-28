@@ -244,14 +244,14 @@ task_t *scheduler(task_t *tarefasUser){
 }
 
 void dispatcher () {   
-   while( queue_size( (queue_t*)tarefasUser) > 1) { //analiza se existe algum elemento na fila de tarefas prontas
+   while( queue_size( (queue_t*)tarefasUser) > 0) { //analiza se existe algum elemento na fila de tarefas prontas
       task_t *prox = scheduler(tarefasUser);
       if(prox != NULL){ //se o scheduler retorna uma tarefa, retira ela da fila e realiza task_switch
         quantum = 20;
         prox->ativacoes = prox->ativacoes + 1;
         int processadorInicio = systime();
+        // imprime_fila(tarefasUser);
         queue_remove ((queue_t**) &tarefasUser, (queue_t*) prox) ;
-        imprime_fila(tarefasUser);
         task_switch (prox);
         Dispatcher.ativacoes = Dispatcher.ativacoes + 1;
         prox->horarioProcessador = prox->horarioProcessador + (systime() - processadorInicio);
@@ -264,8 +264,9 @@ void tratador (int signum)
 {
     relogio ++;
     if(ContextAtual->tipoTarefa == 1){
-        quantum = quantum - 1;
+        quantum --;
         if(quantum == 0){
+            queue_append((queue_t**)&tarefasUser, (queue_t*)ContextAtual);
             task_switch(&Dispatcher);
         }
     }

@@ -12,31 +12,6 @@
 
 // Estrutura que define um Task Control Block (TCB)
 
-/*  P4 
-
-    Alunas: 
-    
-        GRR20182564 Viviane da Rosa Sommer
-        GRR20185174 Luzia Millena Santos Silva
-
-    Arquivo ppos_data.h:
-
-        Adicionado na estrutura task_t os seguintes campos:
-            1 -  status : estado da tarefa
-            2 -  prioridadeEstatica : nível de prioridade estatica da tarefa
-            3 -  prioridadeDinamica : nível de prioridade dinamica da tarefa 
-
-    Necessário ter os seguintes arquivos na pasta: 
-
-            1 -  pingpong.c
-            2 -  pingpong-scheduler.c
-            3 -  ppos.h
-            4 -  ppos_data.h
-            5 -  queue.c
-            6 -  queue.h
-
-*/
-
 typedef enum Status
 {
   Pronta, //0

@@ -263,9 +263,9 @@ void dispatcher () {
 void tratador (int signum)
 {
     relogio ++;
-    if(ContextAtual->tipoTarefa == 1){
+    if(ContextAtual->tipoTarefa == 1){ //apenas faz preempção quando é tarefa de usuário
         quantum --;
-        if(quantum == 0){
+        if(quantum == 0){ //troca de contexto quando acaba o quantum
             queue_append((queue_t**)&tarefasUser, (queue_t*)ContextAtual);
             task_switch(&Dispatcher);
         }
@@ -296,12 +296,12 @@ void temporizador(){
     }
 }
 
-unsigned int systime () {
+unsigned int systime () { //cálculo de tempo
     return relogio;
 }
 
 
-void imprime_fila(task_t *tarefasUser){
+void imprime_fila(task_t *tarefasUser){ // função extra para imprimir o conteudo da fila
 	printf("Saída gerada: ");
 	if (tarefasUser == NULL ) {
 		printf("[] \n");

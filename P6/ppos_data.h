@@ -60,6 +60,8 @@ typedef struct task_t
    // ... (outros campos serão adicionados mais tarde)
 } task_t ;
 
+
+// funções auxiliares usadas no ppos_core.c
 void dispatcher () ;
 
 void temporizador() ;

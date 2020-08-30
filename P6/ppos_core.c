@@ -22,14 +22,14 @@ int quantum ;
 unsigned int relogio;
 task_t ContextMain, *ContextAtual ,*tarefasUser, Dispatcher;
 
-/*  P4
+/*  P6
 
     Alunas: 
     
         GRR20182564 Viviane da Rosa Sommer
         GRR20185174 Luzia Millena Santos Silva
 
-    Arquivo pingpong.c:
+    Arquivo ppos_core.c:
 
         Implementada as seguintes funções:
             1 -  ppos_init  - Inicializa o sistema
@@ -42,6 +42,10 @@ task_t ContextMain, *ContextAtual ,*tarefasUser, Dispatcher;
             8 -  task_getprio - Recebe a prioridade estática
             9 -  scheduler  - Escolhe qual a próxima tarefa a ser executada
             10 - dispatcher - Realiza a troca de contexto entre tarefas **(ela também é uma tarefa)
+            11 - tratador - Analiza se o quantum já acabou, e jaz a preempção
+            12 - temporizador - Ajusta o temporizador para fazer a preempção
+            13 - systime - Função que retorna uma simulação de relógio
+            14 - imprime_fila - Imprime a fila de forma organizada
 
     Arquivo ppos_data.h:
 
@@ -49,17 +53,16 @@ task_t ContextMain, *ContextAtual ,*tarefasUser, Dispatcher;
             1 -  status : estado da tarefa
             2 -  prioridadeEstatica : nível de prioridade estatica da tarefa
             3 -  prioridadeDinamica : nível de prioridade dinamica da tarefa 
+            4 -  tipoTarefa :  0 = tarefa de sistema e 1 = tarefa de usuário
+            5 -  horarioInicio : salva a hora q inicia a tarefa
+            6 -  horarioFim : salva a hora q finaliza a tarefa 
+            7 -  horarioProcessador : salva o tempo de execução da tarefa
+            8 -  ativacoes : conta quantas vezes a tarefa trocou de contexto
 
-    Compilado com : cc -Wall queue.c pingpong.c pingpong-scheduler.c 
-
-    Necessário ter os seguintes arquivos na pasta: 
-
-            1 -  pingpong.c
-            2 -  pingpong-scheduler.c
-            3 -  ppos.h
-            4 -  ppos_data.h
-            5 -  queue.c
-            6 -  queue.h
+        Adicionado as funções:
+            1 -  void dispatcher () ;
+            2 -  void temporizador() ;
+            3 -  void imprime_fila(task_t *fila);
 
 */
 

@@ -72,6 +72,7 @@ void ppos_init (){
     setvbuf (stdout, 0, _IONBF, 0) ;
 
     tarefasUser = NULL;
+
     char *stack;
     stack = malloc (STACKSIZE);
     
@@ -92,21 +93,35 @@ void ppos_init (){
         exit (-1);
     }
     task_setprio(&ContextMain,0);
+
     ContextMain.next = NULL;
     ContextMain.prev = NULL;
+
     ContextAtual = &ContextMain;
 
     #ifdef DEBUG
     printf ("ppos_init: criou tarefa %d - MAIN \n", ContextAtual->id) ;
     #endif
 
+    makecontext (&ContextMain.context, (void*)(*main), 1, NULL);
+    //Insere tarefa main na fila
+    queue_append ((queue_t **) &tarefasUser, (queue_t *) (&ContextMain)) ;
+    
+//Cria tarefa Main
+//task_create(&ContextMain, void (&main)(), NULL);
+    
     Dispatcher.status = 1;
     Dispatcher.tipoTarefa = 0; // tarefa de sistema
+
     //Cria tarefa dispatcher
     task_create(&Dispatcher, dispatcher, NULL);
     queue_remove ((queue_t**) &tarefasUser, (queue_t*) &Dispatcher) ;
 
+    // ajusta e ativa mecanismo de preempção por tempo
     temporizador();
+
+    //Ativa dispatcher ao iniciar
+    task_yield () ;
 }
 
 int task_create (task_t *task, void (*start_routine)(void *),  void *arg) {

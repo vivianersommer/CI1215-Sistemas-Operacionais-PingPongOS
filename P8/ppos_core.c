@@ -205,10 +205,10 @@ void task_exit (int exit_code){
     task_t *aux = ContextAtual->tarefasSuspensas;
     aux = aux->next;
     //acorda tarefas suspensas devido a task_join()
-    while ( aux != ContextAtual->( &tarefasSuspensas )){
+    while ( aux != ContextAtual->tarefasSuspensas ){
 
 	    aux->status = 0;
-	    queue_remove ( ( queue_t** ) &tarefasSuspensas, (queue_t*) aux ) ;
+	    queue_remove ( ( queue_t** ) ContextAtual->tarefasSuspensas, (queue_t*) aux ) ;
 	    queue_append ( ( queue_t** ) tarefasUser, ( queue_t* ) aux ) ;
 	    aux = aux->next;
     }
@@ -356,12 +356,12 @@ void imprime_fila(task_t *tarefasUser){ // função extra para imprimir o conteu
 int task_join(task_t *task){
 
 	if ( task == NULL )
-		return;
+		return -1;
 	
 	//suspende tarefa atual 
 	ContextAtual->status = 1;
         queue_remove ( ( queue_t** ) &tarefasUser, (queue_t*) &ContextAtual ) ;
-    	queue_append ( ( queue_t** ) task->( &tarefasSuspensas ), ( queue_t* )( &ContextAtual )) ;
+    	queue_append ( ( queue_t** ) task->tarefasSuspensas , ( queue_t* )( &ContextAtual )) ;
 	
-	return 0;
+	return task_id();
 }

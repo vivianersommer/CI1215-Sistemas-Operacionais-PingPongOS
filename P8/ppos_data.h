@@ -1,0 +1,75 @@
+// PingPongOS - PingPong Operating System
+// Prof. Carlos A. Maziero, DINF UFPR
+// Versão 1.1 -- Julho de 2016
+
+// Estruturas de dados internas do sistema operacional
+
+#ifndef __PPOS_DATA__
+#define __PPOS_DATA__
+
+#include <ucontext.h>		// biblioteca POSIX de trocas de contexto
+#include "queue.h"		// biblioteca de filas genéricas
+
+// Estrutura que define um Task Control Block (TCB)
+
+typedef enum Status
+{
+  Pronta, //0
+  Suspensa,  //1
+  Terminada  //2
+} Status; 
+
+typedef struct task_t
+{
+   struct task_t *prev, *next ;		// ponteiros para usar em filas
+   int id ;				// identificador da tarefa
+   ucontext_t context ;			// contexto armazenado da tarefa
+   Status status; //estado da tarefa
+   int prioridadeEstatica; // nível de prioridade estatica da tarefa 
+   int prioridadeDinamica; // nível de prioridade dinamica da tarefa 
+   int tipoTarefa; // 0 : tarefa de sistema e 1 : tarefa de usuário
+   int horarioInicio; // salva a hora q inicia a tarefa
+   int horarioFim; // salva a hora q finaliza a tarefa
+   int horarioProcessador; // salva o tempo de execução
+   int ativacoes; //quantas vezes trocou de contexto
+   struct task_t *tarefasSuspensas;  //tarefas que foram suspensas por task_join()
+   // ... (outros campos serão adicionados mais tarde)
+} task_t ;
+
+
+// funções auxiliares usadas no ppos_core.c
+void dispatcher () ;
+//int main (int argc, char *argv[]);
+void temporizador() ;
+
+void imprime_fila(task_t *fila);
+
+int task_join(task_t *task);
+
+// estrutura que define um semáforo
+typedef struct
+{
+  // preencher quando necessário
+} semaphore_t ;
+
+// estrutura que define um mutex
+typedef struct
+{
+  // preencher quando necessário
+} mutex_t ;
+
+// estrutura que define uma barreira
+typedef struct
+{
+  // preencher quando necessário
+} barrier_t ;
+
+
+
+// estrutura que define uma fila de mensagens
+typedef struct
+{
+  // preencher quando necessário
+} mqueue_t ;
+
+#endif

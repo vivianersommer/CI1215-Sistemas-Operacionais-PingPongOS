@@ -38,7 +38,7 @@ typedef struct task_t
 
 // funções auxiliares usadas no ppos_core.c
 void dispatcher () ;
-
+int main (int argc, char *argv[]);
 void temporizador() ;
 
 void imprime_fila(task_t *fila);

@@ -203,15 +203,23 @@ void task_exit (int exit_code){
     #endif
 
     task_t *aux = ContextAtual->tarefasSuspensas;
-    aux = aux->next;
-    //acorda tarefas suspensas devido a task_join()
-    while ( aux != ContextAtual->tarefasSuspensas ){
-
-	    aux->status = 0;
-	    queue_remove ( ( queue_t** ) ContextAtual->tarefasSuspensas, (queue_t*) aux ) ;
-	    queue_append ( ( queue_t** ) tarefasUser, ( queue_t* ) aux ) ;
-	    aux = aux->next;
+    if( aux!= NULL){
+        aux = aux->next;
+        //acorda tarefas suspensas devido a task_join()
+        while ( aux != ContextAtual->tarefasSuspensas ){
+            printf("oi\n");
+            aux->status = 0;
+            queue_remove ( ( queue_t** ) ContextAtual->tarefasSuspensas, (queue_t*) aux ) ;
+            queue_t* context = (queue_t*) aux;
+            if(ContextAtual!=NULL){
+                context->next = NULL;
+                context->prev = NULL;
+            }
+            queue_append ( ( queue_t** ) tarefasUser, ( queue_t* ) aux ) ;
+            aux = aux->next;
+        }
     }
+
 
     if(ContextAtual->id == 1){
         task_switch(&ContextMain);
@@ -280,7 +288,7 @@ void dispatcher () {
         quantum = 20;
         prox->ativacoes = prox->ativacoes + 1;
         int processadorInicio = systime();
-        imprime_fila(tarefasUser);
+        // imprime_fila(tarefasUser);
         queue_remove ((queue_t**) &tarefasUser, (queue_t*) prox) ;
         task_switch (prox);
         Dispatcher.ativacoes = Dispatcher.ativacoes + 1;
@@ -354,21 +362,18 @@ void imprime_fila(task_t *tarefasUser){ // função extra para imprimir o conteu
 
 
 int task_join(task_t *task){
-
 	if ( task == NULL ){
 		return -1;
     }
-
 	//suspende tarefa atual 
-
 	ContextAtual->status = 1;
-    queue_remove ( ( queue_t** ) &tarefasUser, (queue_t*) &ContextAtual ) ;
-    if(task->tarefasSuspensas!=NULL){
-        imprime_fila(task->tarefasSuspensas);
-        task->tarefasSuspensas->prev = NULL;
-        task->tarefasSuspensas->next = NULL;
+    queue_remove ( ( queue_t** ) &tarefasUser, (queue_t*) ContextAtual ) ;
+    queue_t* context = (queue_t*) ContextAtual;
+    if(ContextAtual!=NULL){
+        context->next = NULL;
+        context->prev = NULL;
     }
     queue_append ( ( queue_t** ) &task->tarefasSuspensas , ( queue_t* )( &ContextAtual )) ;
-	
+    task_yield();
 	return task->id;
 }

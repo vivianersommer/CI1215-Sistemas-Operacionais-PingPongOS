@@ -44,7 +44,8 @@ void temporizador() ;
 
 void imprime_fila(task_t *fila);
 
-int task_join(task_t *task);
+int main (int argc, char *argv[]);
+
 
 // estrutura que define um semáforo
 typedef struct

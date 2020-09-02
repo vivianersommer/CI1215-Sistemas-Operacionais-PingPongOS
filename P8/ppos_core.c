@@ -280,7 +280,7 @@ void dispatcher () {
         quantum = 20;
         prox->ativacoes = prox->ativacoes + 1;
         int processadorInicio = systime();
-        // imprime_fila(tarefasUser);
+        imprime_fila(tarefasUser);
         queue_remove ((queue_t**) &tarefasUser, (queue_t*) prox) ;
         task_switch (prox);
         Dispatcher.ativacoes = Dispatcher.ativacoes + 1;
@@ -355,13 +355,20 @@ void imprime_fila(task_t *tarefasUser){ // função extra para imprimir o conteu
 
 int task_join(task_t *task){
 
-	if ( task == NULL )
+	if ( task == NULL ){
 		return -1;
-	
+    }
+
 	//suspende tarefa atual 
+
 	ContextAtual->status = 1;
-        queue_remove ( ( queue_t** ) &tarefasUser, (queue_t*) &ContextAtual ) ;
-    	queue_append ( ( queue_t** ) task->tarefasSuspensas , ( queue_t* )( &ContextAtual )) ;
+    queue_remove ( ( queue_t** ) &tarefasUser, (queue_t*) &ContextAtual ) ;
+    if(task->tarefasSuspensas!=NULL){
+        imprime_fila(task->tarefasSuspensas);
+        task->tarefasSuspensas->prev = NULL;
+        task->tarefasSuspensas->next = NULL;
+    }
+    queue_append ( ( queue_t** ) &task->tarefasSuspensas , ( queue_t* )( &ContextAtual )) ;
 	
-	return task_id();
+	return task->id;
 }

@@ -209,7 +209,7 @@ void task_exit (int exit_code){
                 context->next = NULL;
                 context->prev = NULL;
             }
-            queue_append ( ( queue_t** ) tarefasUser, ( queue_t* ) context ) ;
+            queue_append ( ( queue_t** ) &tarefasUser, ( queue_t* ) context ) ;
             aux = aux->next;
     }
 

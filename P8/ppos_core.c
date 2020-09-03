@@ -105,13 +105,6 @@ void ppos_init (){
     printf ("ppos_init: criou tarefa %d - MAIN \n", ContextAtual->id) ;
     #endif
 
-    makecontext (&ContextMain.context, (void*)(&ContextMain), 1, NULL);
-    //Insere tarefa main na fila
-    queue_append ((queue_t **) &tarefasUser, (queue_t *) (&ContextMain)) ;
-    
-//Cria tarefa Main
-//task_create(&ContextMain, void (&main)(), NULL);
-    
     Dispatcher.status = 1;
     Dispatcher.tipoTarefa = 0; // tarefa de sistema
 
@@ -119,11 +112,18 @@ void ppos_init (){
     task_create(&Dispatcher, dispatcher, NULL);
     queue_remove ((queue_t**) &tarefasUser, (queue_t*) &Dispatcher) ;
 
+//Cria tarefa Main
+task_create(&ContextMain, NULL , 0);
+    //makecontext (&ContextMain.context, (void*)(&ContextMain), 1, NULL);
+    //Insere tarefa main na fila
+    queue_append ((queue_t **) &tarefasUser, (queue_t *) (&ContextMain)) ;
+    
+    
     // ajusta e ativa mecanismo de preempção por tempo
     temporizador();
 
     //Ativa dispatcher ao iniciar
-    //task_yield () ;
+    task_yield () ;
 }
 
 int task_create (task_t *task, void (*start_routine)(void *),  void *arg) {
@@ -203,12 +203,13 @@ void task_exit (int exit_code){
 
     task_t *aux = ContextAtual->tarefasSuspensas;
     if( aux!= NULL){
-        aux = aux->next;
+//        aux = aux->next;
         //acorda tarefas suspensas devido a task_join()
-        while ( aux != ContextAtual->tarefasSuspensas ){
+  //      while ( aux != ContextAtual->tarefasSuspensas ){
             printf("oi\n");
             aux->status = 0;
-            queue_remove ( ( queue_t** ) ContextAtual->tarefasSuspensas, (queue_t*) aux ) ;
+	    imprime_fila( ContextAtual->tarefasSuspensas );
+            queue_remove ( ( queue_t** ) &(ContextAtual->tarefasSuspensas), (queue_t*) aux ) ;
             queue_t* context = (queue_t*) aux;
             if(ContextAtual!=NULL){
                 context->next = NULL;
@@ -216,7 +217,7 @@ void task_exit (int exit_code){
             }
             queue_append ( ( queue_t** ) tarefasUser, ( queue_t* ) aux ) ;
             aux = aux->next;
-        }
+    //    }
     }
 
     ContextAtual->status = 2;
@@ -383,7 +384,22 @@ int task_join(task_t *task){
 	    context->next = NULL;
 	    context->prev = NULL;
     }
-    queue_append ( ( queue_t** ) &task->tarefasSuspensas , ( queue_t* )( &ContextAtual )) ;
-    task_switch(&Dispatcher);
+    queue_append ( ( queue_t** ) &task->tarefasSuspensas , ( context )) ;
+    imprime_fila( task->tarefasSuspensas );
+    
+    // ajusta valores do temporizador
+    timer.it_value.tv_usec = 1000 ;      // primeiro disparo, em micro-segundos
+    timer.it_value.tv_sec  = 0 ;      // primeiro disparo, em segundos
+    timer.it_interval.tv_usec = 1000 ;   // disparos subsequentes, em micro-segundos
+    timer.it_interval.tv_sec  = 0 ;   // disparos subsequentes, em segundos
+
+    // arma o temporizador ITIMER_REAL (vide man setitimer)
+    if (setitimer (ITIMER_REAL, &timer, 0) < 0)
+    {
+        perror ("Erro em setitimer: ") ;
+        exit (1) ;
+    }
+    task_yield();
+
     return task->id;
 }

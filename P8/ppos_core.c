@@ -191,13 +191,6 @@ int task_switch (task_t *task){
 }
 
 void task_exit (int exit_code){
-    
-
-    #ifdef DEBUG
-    printf ("Task %d exit: execution time %d ms, processor time %d ms, %d activations\n", 
-            ContextAtual->id, (ContextAtual->horarioFim - ContextAtual->horarioInicio),
-            ContextAtual->horarioProcessador , ContextAtual->ativacoes) ;
-    #endif
 
     task_t *aux = ContextAtual->tarefasSuspensas;
     if( aux!= NULL){
@@ -216,11 +209,19 @@ void task_exit (int exit_code){
     ContextAtual->status = 2;
     ContextAtual->horarioFim = systime();
 
+    
+    #ifdef DEBUG
+    printf ("Task %d exit: execution time %d ms, processor time %d ms, %d activations\n", 
+            ContextAtual->id, (ContextAtual->horarioFim - ContextAtual->horarioInicio),
+            ContextAtual->horarioProcessador , ContextAtual->ativacoes) ;
+    #endif
+
     if(ContextAtual->id == 1){
         task_switch(&ContextMain);
     }else{
         task_switch(&Dispatcher);
     }
+    
 }
 
 int task_id (){

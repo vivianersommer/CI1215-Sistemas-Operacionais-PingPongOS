@@ -18,7 +18,7 @@ struct itimerval timer ;
 struct itimerval ZeraTimer = {0} ;
 
 char *stack ;
-int i=1;
+int i=0;
 int quantum ; 
 unsigned int relogio;
 task_t ContextMain, *ContextAtual ,*tarefasUser, Dispatcher;
@@ -89,6 +89,7 @@ void ppos_init (){
         ContextMain.horarioInicio = systime();
         ContextMain.ativacoes = 0;
         ContextMain.horarioProcessador = 0;
+        ContextMain.tarefasSuspensas = NULL;
     }
     else{
         perror ("Erro na criação da pilha: ");
@@ -101,23 +102,15 @@ void ppos_init (){
 
     ContextAtual = &ContextMain;
 
-    #ifdef DEBUG
-    printf ("ppos_init: criou tarefa %d - MAIN \n", ContextAtual->id) ;
-    #endif
-
     Dispatcher.status = 1;
     Dispatcher.tipoTarefa = 0; // tarefa de sistema
+
+    //Cria tarefa Main
+    task_create(&ContextMain, NULL , 0);
 
     //Cria tarefa dispatcher
     task_create(&Dispatcher, dispatcher, NULL);
     queue_remove ((queue_t**) &tarefasUser, (queue_t*) &Dispatcher) ;
-
-//Cria tarefa Main
-task_create(&ContextMain, NULL , 0);
-    //makecontext (&ContextMain.context, (void*)(&ContextMain), 1, NULL);
-    //Insere tarefa main na fila
-    queue_append ((queue_t **) &tarefasUser, (queue_t *) (&ContextMain)) ;
-    
     
     // ajusta e ativa mecanismo de preempção por tempo
     temporizador();
@@ -143,6 +136,7 @@ int task_create (task_t *task, void (*start_routine)(void *),  void *arg) {
         task->horarioInicio = systime();
         task->ativacoes = 0 ;
         task->horarioProcessador = 0;
+        task->tarefasSuspensas = NULL;
         if(task->id != 1){
             task->tipoTarefa = 1; //tarefa de usuário
         }
@@ -162,16 +156,20 @@ int task_create (task_t *task, void (*start_routine)(void *),  void *arg) {
 
     queue_append ((queue_t **) &tarefasUser,  context) ;
 
-    // if(task->id == 1){
-    //     #ifdef DEBUG
-    //     printf ("task_create: criou tarefa %d - DISPACHER\n", task->id) ;
-    //     #endif
-    // }
-    // else{
-    //     #ifdef DEBUG
-    //     printf ("task_create: criou tarefa %d\n", task->id) ;
-    //     #endif
-    // }
+    if(task->id == 0){
+        #ifdef DEBUG
+        printf ("task_create: criou tarefa %d - MAIN\n", task->id) ;
+        #endif
+    }else if(task->id == 1){
+        #ifdef DEBUG
+        printf ("task_create: criou tarefa %d - DISPACHER\n", task->id) ;
+        #endif
+    }
+    else{
+        #ifdef DEBUG
+        printf ("task_create: criou tarefa %d\n", task->id) ;
+        #endif
+    }
 
     return task_id();     
 }
@@ -203,12 +201,8 @@ void task_exit (int exit_code){
 
     task_t *aux = ContextAtual->tarefasSuspensas;
     if( aux!= NULL){
-//        aux = aux->next;
-        //acorda tarefas suspensas devido a task_join()
-  //      while ( aux != ContextAtual->tarefasSuspensas ){
-            printf("oi\n");
             aux->status = 0;
-	    imprime_fila( ContextAtual->tarefasSuspensas );
+	        // imprime_fila( ContextAtual->tarefasSuspensas );
             queue_remove ( ( queue_t** ) &(ContextAtual->tarefasSuspensas), (queue_t*) aux ) ;
             queue_t* context = (queue_t*) aux;
             if(ContextAtual!=NULL){
@@ -217,7 +211,6 @@ void task_exit (int exit_code){
             }
             queue_append ( ( queue_t** ) tarefasUser, ( queue_t* ) context ) ;
             aux = aux->next;
-    //    }
     }
 
     ContextAtual->status = 2;
@@ -284,8 +277,7 @@ task_t *scheduler(task_t *tarefasUser){
 }
 
 void dispatcher () {   
-    printf("oi\n");
-   while( queue_size( (queue_t*)tarefasUser) > 0) { //analiza se existe algum elemento na fila de tarefas prontas
+    while( queue_size( (queue_t*)tarefasUser) > 0) { //analiza se existe algum elemento na fila de tarefas prontas
       task_t *prox = scheduler(tarefasUser);
       if(prox != NULL){ //se o scheduler retorna uma tarefa, retira ela da fila e realiza task_switch
         quantum = 20;
@@ -387,7 +379,7 @@ int task_join(task_t *task){
 
 
     queue_append ( ( queue_t** ) &task->tarefasSuspensas , ( context )) ;
-    imprime_fila( task->tarefasSuspensas );
+    // imprime_fila( task->tarefasSuspensas );
 
     // ajusta valores do temporizador
     timer.it_value.tv_usec = 1000 ;      // primeiro disparo, em micro-segundos

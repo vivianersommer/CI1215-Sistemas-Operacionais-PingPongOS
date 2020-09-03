@@ -51,7 +51,6 @@ queue_t *queue_remove (queue_t **queue, queue_t *elem){
 	queue_t *aux = (*queue)->next;
 	while ( aux != elem ) {
 		if( aux->next == ( *queue )->next ) {
-			printf("cai aqui\n");
 			return NULL;
 		}
 		aux = aux->next;

@@ -384,6 +384,14 @@ int task_join(task_t *task){
 	    context->prev = NULL;
     }
     queue_append ( ( queue_t** ) &task->tarefasSuspensas , ( queue_t* )( &ContextAtual )) ;
+
+    // arma o temporizador ITIMER_REAL (vide man setitimer)
+    if (setitimer (ITIMER_REAL, &timer, 0) < 0)
+    {
+        perror ("Erro em setitimer: ") ;
+        exit (1) ;
+    }
+
     task_switch(&Dispatcher);
     return task->id;
 }

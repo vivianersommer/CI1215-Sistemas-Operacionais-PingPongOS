@@ -15,6 +15,7 @@ struct sigaction action ;
 
 // estrutura de inicialização to timer
 struct itimerval timer ;
+struct itimerval ZeraTimer = {0} ;
 
 char *stack ;
 int i=1;
@@ -104,7 +105,7 @@ void ppos_init (){
     printf ("ppos_init: criou tarefa %d - MAIN \n", ContextAtual->id) ;
     #endif
 
-    makecontext (&ContextMain.context, (void*)(*main), 1, NULL);
+    makecontext (&ContextMain.context, (void*)(&ContextMain), 1, NULL);
     //Insere tarefa main na fila
     queue_append ((queue_t **) &tarefasUser, (queue_t *) (&ContextMain)) ;
     
@@ -122,7 +123,7 @@ void ppos_init (){
     temporizador();
 
     //Ativa dispatcher ao iniciar
-    task_yield () ;
+    //task_yield () ;
 }
 
 int task_create (task_t *task, void (*start_routine)(void *),  void *arg) {
@@ -193,8 +194,6 @@ int task_switch (task_t *task){
 
 void task_exit (int exit_code){
     
-    ContextAtual->status = 2;
-    ContextAtual->horarioFim = systime();
 
     #ifdef DEBUG
     printf ("Task %d exit: execution time %d ms, processor time %d ms, %d activations\n", 
@@ -220,6 +219,8 @@ void task_exit (int exit_code){
         }
     }
 
+    ContextAtual->status = 2;
+    ContextAtual->horarioFim = systime();
 
     if(ContextAtual->id == 1){
         task_switch(&ContextMain);
@@ -288,7 +289,6 @@ void dispatcher () {
         quantum = 20;
         prox->ativacoes = prox->ativacoes + 1;
         int processadorInicio = systime();
-        // imprime_fila(tarefasUser);
         queue_remove ((queue_t**) &tarefasUser, (queue_t*) prox) ;
         task_switch (prox);
         Dispatcher.ativacoes = Dispatcher.ativacoes + 1;
@@ -362,18 +362,40 @@ void imprime_fila(task_t *tarefasUser){ // função extra para imprimir o conteu
 
 
 int task_join(task_t *task){
-	if ( task == NULL ){
+	
+	if (( task == NULL ) || (task->status == 2 )){
 		return -1;
+	}
+
+    // arma o temporizador ITIMER_REAL (vide man setitimer)
+    if (setitimer (ITIMER_REAL, &ZeraTimer, 0) < 0)
+    {
+        perror ("Erro em setitimer: ") ;
+        exit (1) ;
     }
-	//suspende tarefa atual 
+
+        //suspende tarefa atual 
 	ContextAtual->status = 1;
-    queue_remove ( ( queue_t** ) &tarefasUser, (queue_t*) ContextAtual ) ;
-    queue_t* context = (queue_t*) ContextAtual;
-    if(ContextAtual!=NULL){
-        context->next = NULL;
-        context->prev = NULL;
-    }
-    queue_append ( ( queue_t** ) &task->tarefasSuspensas , ( queue_t* )( &ContextAtual )) ;
-    task_yield();
+	queue_remove ( ( queue_t** ) &tarefasUser, (queue_t*) ContextAtual ) ;
+	queue_t* context = (queue_t*) ContextAtual;
+	if(ContextAtual!=NULL){
+		context->next = NULL;
+		context->prev = NULL;
+	}
+	queue_append ( ( queue_t** ) &task->tarefasSuspensas , ( queue_t* )( &ContextAtual )) ;
+    // ajusta valores do temporizador
+    timer.it_value.tv_usec = 1000 ;      // primeiro disparo, em micro-segundos
+    timer.it_value.tv_sec  = 0 ;      // primeiro disparo, em segundos
+    timer.it_interval.tv_usec = 1000 ;   // disparos subsequentes, em micro-segundos
+    timer.it_interval.tv_sec  = 0 ;   // disparos subsequentes, em segundos
+
+    // arma o temporizador ITIMER_REAL (vide man setitimer)
+    if (setitimer (ITIMER_REAL, &timer, 0) < 0)
+    {
+        perror ("Erro em setitimer: ") ;
+        exit (1) ;
+    } 
+        imprime_fila(task->tarefasSuspensas);
+	task_yield();
 	return task->id;
 }

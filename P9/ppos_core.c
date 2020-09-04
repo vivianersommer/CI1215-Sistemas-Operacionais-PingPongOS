@@ -280,17 +280,18 @@ task_t *scheduler(task_t *tarefasUser){
 
 void dispatcher () {   
     while( queue_size( (queue_t*)tarefasUser) > 0 || queue_size( (queue_t*)tarefasNanando) > 0) { //analiza se existe algum elemento na fila de tarefas prontas
-      acordaTarefas(tarefasNanando);
       task_t *prox = scheduler(tarefasUser);
       if(prox != NULL){ //se o scheduler retorna uma tarefa, retira ela da fila e realiza task_switch
         quantum = 20;
         prox->ativacoes = prox->ativacoes + 1;
         int processadorInicio = systime();
         queue_remove ((queue_t**) &tarefasUser, (queue_t*) prox) ;
+        imprime_fila(tarefasUser);
         task_switch (prox);
         Dispatcher.ativacoes = Dispatcher.ativacoes + 1;
         prox->horarioProcessador = prox->horarioProcessador + (systime() - processadorInicio);
       }
+      acordaTarefas(tarefasNanando);
    }
    task_exit(0);  //quando a fila esvazia, encerra o dispatcher, pois ele também é uma tarefa
 }
@@ -382,7 +383,6 @@ int task_join(task_t *task){
 
 
     queue_append ( ( queue_t** ) &task->tarefasSuspensas , ( context )) ;
-    // imprime_fila( task->tarefasSuspensas );
 
     // ajusta valores do temporizador
     timer.it_value.tv_usec = 1000 ;      // primeiro disparo, em micro-segundos
@@ -403,28 +403,24 @@ int task_join(task_t *task){
 }
 
 void task_sleep (int t){
-    if(ContextAtual == NULL || tarefasUser == NULL){
+    if(ContextAtual == NULL || tarefasUser == NULL || t<=0){
         return;
     }
-    if (setitimer (ITIMER_REAL, &ZeraTimer, 0) < 0)
-    {
-        perror ("Erro em setitimer: ") ;
-        exit (1) ;
-    }
+
+    // remove da fila de tarefas prontas
+    queue_remove ( ( queue_t** ) &tarefasUser , (queue_t*) ContextAtual ) ;
     ContextAtual->horaAcordar = systime() + t;
     ContextAtual->status = 1;
-    queue_remove ( ( queue_t** ) &tarefasUser, (queue_t*) ContextAtual ) ;
     queue_t* context = (queue_t*) ContextAtual;
+
     if(context!=NULL){
 	    context->next = NULL;
 	    context->prev = NULL;
-    } //vai dormir bb
-    queue_append ( ( queue_t** ) &tarefasNanando , (queue_t*) context ) ;
-    if (setitimer (ITIMER_REAL, &timer, 0) < 0)
-    {
-	    perror ("Erro em setitimer: ") ;
-	    exit (1) ;
-    }
+    } 
+    // adiciona na fila de tarefas dormindo
+    queue_append ( ( queue_t** ) &tarefasNanando , context ) ;
+
+    //retorna ao dispatcher
     task_yield();
 }
 
@@ -432,8 +428,8 @@ void acordaTarefas(task_t *tarefasNanando){
     if(tarefasNanando == NULL){
         return;
     }
-    task_t *aux=tarefasNanando->next;
-    while(tarefasNanando != aux){
+    task_t *aux = tarefasNanando;
+    do{
         if(aux->horaAcordar <= systime()){
             aux->status = 0;
             queue_remove ( ( queue_t** ) &tarefasNanando, (queue_t*) aux ) ;
@@ -442,9 +438,9 @@ void acordaTarefas(task_t *tarefasNanando){
                 context->next = NULL;
                 context->prev = NULL;
             }
-            queue_append ( ( queue_t** ) &tarefasUser, ( queue_t* ) context ) ;
+            queue_append ( ( queue_t** ) &tarefasUser, context ) ;
         }
         aux = aux->next;    
-    }
+    } while(tarefasNanando != aux);
     return;
 }

@@ -33,6 +33,7 @@ typedef struct task_t
    int horarioProcessador; // salva o tempo de execução
    int ativacoes; //quantas vezes trocou de contexto
    struct task_t *tarefasSuspensas;  //tarefas que foram suspensas por task_join()
+   int horaAcordar;  //hora que a tarefa acorda (SE MANCA TAREFA)
    // ... (outros campos serão adicionados mais tarde)
 } task_t ;
 
@@ -43,6 +44,8 @@ void dispatcher () ;
 void temporizador() ;
 
 void imprime_fila(task_t *fila);
+
+void acordaTarefas(task_t *fila);
 
 int main (int argc, char *argv[]);
 

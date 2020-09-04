@@ -21,7 +21,7 @@ char *stack ;
 int i=0;
 int quantum ; 
 unsigned int relogio;
-task_t ContextMain, *ContextAtual ,*tarefasUser, Dispatcher;
+task_t ContextMain, *ContextAtual ,*tarefasUser, Dispatcher , *tarefasNanando;
 
 /*  P6
 
@@ -74,7 +74,7 @@ void ppos_init (){
     setvbuf (stdout, 0, _IONBF, 0) ;
 
     tarefasUser = NULL;
-
+    tarefasNanando = NULL;
     char *stack;
     stack = malloc (STACKSIZE);
     
@@ -137,6 +137,7 @@ int task_create (task_t *task, void (*start_routine)(void *),  void *arg) {
         task->ativacoes = 0 ;
         task->horarioProcessador = 0;
         task->tarefasSuspensas = NULL;
+        task->horaAcordar = 0;
         if(task->id != 1){
             task->tipoTarefa = 1; //tarefa de usuário
         }
@@ -278,7 +279,8 @@ task_t *scheduler(task_t *tarefasUser){
 }
 
 void dispatcher () {   
-    while( queue_size( (queue_t*)tarefasUser) > 0) { //analiza se existe algum elemento na fila de tarefas prontas
+    while( queue_size( (queue_t*)tarefasUser) > 0 || queue_size( (queue_t*)tarefasNanando) > 0) { //analiza se existe algum elemento na fila de tarefas prontas
+      acordaTarefas(tarefasNanando);
       task_t *prox = scheduler(tarefasUser);
       if(prox != NULL){ //se o scheduler retorna uma tarefa, retira ela da fila e realiza task_switch
         quantum = 20;
@@ -398,4 +400,51 @@ int task_join(task_t *task){
     task_yield();
 
     return task->id;
+}
+
+void task_sleep (int t){
+    if(ContextAtual == NULL || tarefasUser == NULL){
+        return;
+    }
+    if (setitimer (ITIMER_REAL, &ZeraTimer, 0) < 0)
+    {
+        perror ("Erro em setitimer: ") ;
+        exit (1) ;
+    }
+    ContextAtual->horaAcordar = systime() + t;
+    ContextAtual->status = 1;
+    queue_remove ( ( queue_t** ) &tarefasUser, (queue_t*) ContextAtual ) ;
+    queue_t* context = (queue_t*) ContextAtual;
+    if(context!=NULL){
+	    context->next = NULL;
+	    context->prev = NULL;
+    } //vai dormir bb
+    queue_append ( ( queue_t** ) &tarefasNanando , (queue_t*) context ) ;
+    if (setitimer (ITIMER_REAL, &timer, 0) < 0)
+    {
+	    perror ("Erro em setitimer: ") ;
+	    exit (1) ;
+    }
+    task_yield();
+}
+
+void acordaTarefas(task_t *tarefasNanando){
+    if(tarefasNanando == NULL){
+        return;
+    }
+    task_t *aux=tarefasNanando->next;
+    while(tarefasNanando != aux){
+        if(aux->horaAcordar <= systime()){
+            aux->status = 0;
+            queue_remove ( ( queue_t** ) &tarefasNanando, (queue_t*) aux ) ;
+            queue_t* context = (queue_t*) aux;
+            if(context!=NULL){
+                context->next = NULL;
+                context->prev = NULL;
+            }
+            queue_append ( ( queue_t** ) &tarefasUser, ( queue_t* ) context ) ;
+        }
+        aux = aux->next;    
+    }
+    return;
 }

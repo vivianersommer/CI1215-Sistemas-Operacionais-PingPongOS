@@ -34,6 +34,7 @@ typedef struct task_t
    int ativacoes; //quantas vezes trocou de contexto
    struct task_t *tarefasSuspensas;  //tarefas que foram suspensas por task_join()
    int horaAcordar;  //hora que a tarefa acorda (SE MANCA TAREFA)
+   int exitcode; 
    // ... (outros campos serão adicionados mais tarde)
 } task_t ;
 

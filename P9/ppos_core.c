@@ -208,6 +208,7 @@ void task_exit (int exit_code){
     }
 
     ContextAtual->status = 2;
+    ContextAtual->exitcode = exit_code;
     ContextAtual->horarioFim = systime();
 
     
@@ -399,7 +400,7 @@ int task_join(task_t *task){
 
     task_yield();
 
-    return task->id;
+    return task->exitcode;
 }
 
 void task_sleep (int t){

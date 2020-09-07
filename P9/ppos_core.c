@@ -281,18 +281,20 @@ task_t *scheduler(task_t *tarefasUser){
 
 void dispatcher () {   
     while( queue_size( (queue_t*)tarefasUser) > 0 || queue_size( (queue_t*)tarefasNanando) > 0) { //analiza se existe algum elemento na fila de tarefas prontas
-      task_t *prox = scheduler(tarefasUser);
-      if(prox != NULL){ //se o scheduler retorna uma tarefa, retira ela da fila e realiza task_switch
-        quantum = 20;
-        prox->ativacoes = prox->ativacoes + 1;
-        int processadorInicio = systime();
-        queue_remove ((queue_t**) &tarefasUser, (queue_t*) prox) ;
-        imprime_fila(tarefasUser);
-        task_switch (prox);
-        Dispatcher.ativacoes = Dispatcher.ativacoes + 1;
-        prox->horarioProcessador = prox->horarioProcessador + (systime() - processadorInicio);
-      }
-      acordaTarefas(tarefasNanando);
+        if(tarefasUser != NULL){
+            task_t *prox = scheduler(tarefasUser);
+            if(prox != NULL){ //se o scheduler retorna uma tarefa, retira ela da fila e realiza task_switch
+                quantum = 20;
+                prox->ativacoes = prox->ativacoes + 1;
+                int processadorInicio = systime();
+                queue_remove ((queue_t**) &tarefasUser, (queue_t*) prox) ;
+                task_switch (prox);
+                Dispatcher.ativacoes = Dispatcher.ativacoes + 1;
+                prox->horarioProcessador = prox->horarioProcessador + (systime() - processadorInicio);
+            }
+        }
+        acordaTarefas();
+
    }
    task_exit(0);  //quando a fila esvazia, encerra o dispatcher, pois ele também é uma tarefa
 }
@@ -404,7 +406,7 @@ int task_join(task_t *task){
 }
 
 void task_sleep (int t){
-    if(ContextAtual == NULL || tarefasUser == NULL || t<=0){
+    if(ContextAtual == NULL){
         return;
     }
 
@@ -425,23 +427,24 @@ void task_sleep (int t){
     task_yield();
 }
 
-void acordaTarefas(task_t *tarefasNanando){
+void acordaTarefas(){
     if(tarefasNanando == NULL){
         return;
     }
     task_t *aux = tarefasNanando;
     do{
         if(aux->horaAcordar <= systime()){
+            task_t *trocar = aux;
             aux->status = 0;
-            queue_remove ( ( queue_t** ) &tarefasNanando, (queue_t*) aux ) ;
-            queue_t* context = (queue_t*) aux;
-            if(context!=NULL){
-                context->next = NULL;
-                context->prev = NULL;
-            }
-            queue_append ( ( queue_t** ) &tarefasUser, context ) ;
+            aux = aux->next;    
+            queue_remove ( ( queue_t** ) &tarefasNanando, (queue_t*) trocar) ; 
+            trocar->next = NULL;
+            trocar->prev = NULL;
+            queue_append ( ( queue_t** ) &tarefasUser, (queue_t*) trocar ) ;
         }
-        aux = aux->next;    
+        else{
+            aux = aux->next;    
+        }
     } while(tarefasNanando != aux);
     return;
 }

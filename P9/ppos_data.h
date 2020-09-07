@@ -46,7 +46,7 @@ void temporizador() ;
 
 void imprime_fila(task_t *fila);
 
-void acordaTarefas(task_t *fila);
+void acordaTarefas();
 
 int main (int argc, char *argv[]);
 

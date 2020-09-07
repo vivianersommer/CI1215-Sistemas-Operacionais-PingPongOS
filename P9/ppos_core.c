@@ -195,15 +195,13 @@ void task_exit (int exit_code){
 
     task_t *aux = ContextAtual->tarefasSuspensas;
     if(aux != NULL){
-        do{
-            task_t *trocar = aux;
-            aux->status = 0;
-            aux = aux->next;    
-            queue_remove ( ( queue_t** ) &(ContextAtual->tarefasSuspensas), (queue_t*) trocar) ; 
-            trocar->next = NULL;
-            trocar->prev = NULL;
-            queue_append ( ( queue_t** ) &tarefasUser, (queue_t*) trocar ) ;
-        } while(ContextAtual->tarefasSuspensas != aux);
+        task_t *trocar = aux;
+        aux->status = 0;
+        aux = aux->next;    
+        queue_remove ( ( queue_t** ) &(ContextAtual->tarefasSuspensas), (queue_t*) trocar) ; 
+        trocar->next = NULL;
+        trocar->prev = NULL;
+        queue_append ( ( queue_t** ) &tarefasUser, (queue_t*) trocar ) ;
     }
 
     ContextAtual->status = 2;
@@ -362,12 +360,16 @@ void imprime_fila(task_t *tarefasUser){ // função extra para imprimir o conteu
 
 
 int task_join(task_t *task){
+
+    premp = 0;
 	
-	if (( task == NULL ) || (task->status == 2 )){
+	if ( task == NULL ){
 		return -1;
 	}
 
-    premp = 0;
+    if(task->status == 2){
+        return task->exitcode;
+    }
 
     //suspende tarefa atual 
     ContextAtual->status = 1;

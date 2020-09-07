@@ -18,7 +18,7 @@ struct itimerval timer ;
 struct itimerval ZeraTimer = {0} ;
 
 char *stack ;
-int i=0;
+int i=0 , premp;
 int quantum ; 
 unsigned int relogio;
 task_t ContextMain, *ContextAtual ,*tarefasUser, Dispatcher , *tarefasNanando;
@@ -72,7 +72,7 @@ void ppos_init (){
 
     /* desativa o buffer da saida padrao (stdout), usado pela função printf */
     setvbuf (stdout, 0, _IONBF, 0) ;
-
+    premp = 1;
     tarefasUser = NULL;
     tarefasNanando = NULL;
     char *stack;
@@ -194,17 +194,16 @@ int task_switch (task_t *task){
 void task_exit (int exit_code){
 
     task_t *aux = ContextAtual->tarefasSuspensas;
-    if( aux!= NULL){
+    if(aux != NULL){
+        do{
+            task_t *trocar = aux;
             aux->status = 0;
-	        // imprime_fila( ContextAtual->tarefasSuspensas );
-            queue_remove ( ( queue_t** ) &(ContextAtual->tarefasSuspensas), (queue_t*) aux ) ;
-            queue_t* context = (queue_t*) aux;
-            if(ContextAtual!=NULL){
-                context->next = NULL;
-                context->prev = NULL;
-            }
-            queue_append ( ( queue_t** ) &tarefasUser, ( queue_t* ) context ) ;
-            aux = aux->next;
+            aux = aux->next;    
+            queue_remove ( ( queue_t** ) &(ContextAtual->tarefasSuspensas), (queue_t*) trocar) ; 
+            trocar->next = NULL;
+            trocar->prev = NULL;
+            queue_append ( ( queue_t** ) &tarefasUser, (queue_t*) trocar ) ;
+        } while(ContextAtual->tarefasSuspensas != aux);
     }
 
     ContextAtual->status = 2;
@@ -304,7 +303,7 @@ void tratador (int signum)
     relogio ++;
     if(ContextAtual->tipoTarefa == 1){ //apenas faz preempção quando é tarefa de usuário
         quantum --;
-        if(quantum == 0){ //troca de contexto quando acaba o quantum
+        if(quantum == 0 && premp == 1){ //troca de contexto quando acaba o quantum
             queue_append((queue_t**)&tarefasUser, (queue_t*)ContextAtual);
             task_switch(&Dispatcher);
         }
@@ -368,12 +367,7 @@ int task_join(task_t *task){
 		return -1;
 	}
 
-    // arma o temporizador ITIMER_REAL (vide man setitimer)
-    if (setitimer (ITIMER_REAL, &ZeraTimer, 0) < 0)
-    {
-        perror ("Erro em setitimer: ") ;
-        exit (1) ;
-    }
+    premp = 0;
 
     //suspende tarefa atual 
     ContextAtual->status = 1;
@@ -384,21 +378,9 @@ int task_join(task_t *task){
 	    context->prev = NULL;
     }
 
-
     queue_append ( ( queue_t** ) &task->tarefasSuspensas , ( context )) ;
 
-    // ajusta valores do temporizador
-    timer.it_value.tv_usec = 1000 ;      // primeiro disparo, em micro-segundos
-    timer.it_value.tv_sec  = 0 ;      // primeiro disparo, em segundos
-    timer.it_interval.tv_usec = 1000 ;   // disparos subsequentes, em micro-segundos
-    timer.it_interval.tv_sec  = 0 ;   // disparos subsequentes, em segundos
-
-    // arma o temporizador ITIMER_REAL (vide man setitimer)
-    if (setitimer (ITIMER_REAL, &timer, 0) < 0)
-    {
-	    perror ("Erro em setitimer: ") ;
-	    exit (1) ;
-    }
+    premp = 1;
 
     task_yield();
 
@@ -410,20 +392,18 @@ void task_sleep (int t){
         return;
     }
 
-    // remove da fila de tarefas prontas
-    queue_remove ( ( queue_t** ) &tarefasUser , (queue_t*) ContextAtual ) ;
+    premp = 0;
+
+    task_t *trocar = ContextAtual;
     ContextAtual->horaAcordar = systime() + t;
     ContextAtual->status = 1;
-    queue_t* context = (queue_t*) ContextAtual;
+    queue_remove ( ( queue_t** ) &tarefasUser, (queue_t*) trocar) ; 
+    trocar->next = NULL;
+    trocar->prev = NULL;
+    queue_append ( ( queue_t** ) &tarefasNanando, (queue_t*) trocar ) ;
 
-    if(context!=NULL){
-	    context->next = NULL;
-	    context->prev = NULL;
-    } 
-    // adiciona na fila de tarefas dormindo
-    queue_append ( ( queue_t** ) &tarefasNanando , context ) ;
-
-    //retorna ao dispatcher
+    premp = 1;
+    
     task_yield();
 }
 
@@ -431,6 +411,7 @@ void acordaTarefas(){
     if(tarefasNanando == NULL){
         return;
     }
+    premp = 0;
     task_t *aux = tarefasNanando;
     do{
         if(aux->horaAcordar <= systime()){
@@ -446,5 +427,6 @@ void acordaTarefas(){
             aux = aux->next;    
         }
     } while(tarefasNanando != aux);
+    premp = 1;
     return;
 }

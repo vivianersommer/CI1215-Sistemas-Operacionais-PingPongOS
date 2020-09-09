@@ -180,7 +180,9 @@ int task_switch (task_t *task){
     task_t *ContextoAntigo;
     ContextoAntigo = ContextAtual;
     ContextAtual = task;
-    ContextoAntigo->status = 1;
+    if(ContextoAntigo->status != 2){
+        ContextoAntigo->status = 1;
+    }
     ContextAtual->status = 0;
 
     // #ifdef DEBUG
@@ -302,7 +304,9 @@ void tratador (int signum)
     if(ContextAtual->tipoTarefa == 1){ //apenas faz preempção quando é tarefa de usuário
         quantum --;
         if(quantum == 0 && premp == 1){ //troca de contexto quando acaba o quantum
+            premp = 0;
             queue_append((queue_t**)&tarefasUser, (queue_t*)ContextAtual);
+            premp = 1;
             task_switch(&Dispatcher);
         }
     }
@@ -428,7 +432,7 @@ void acordaTarefas(){
         else{
             aux = aux->next;    
         }
-    } while(tarefasNanando != aux);
+    } while((tarefasNanando!= NULL && aux!= NULL) && tarefasNanando != aux );
     premp = 1;
     return;
 }

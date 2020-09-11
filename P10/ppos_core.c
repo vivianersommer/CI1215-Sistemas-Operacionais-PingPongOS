@@ -279,7 +279,8 @@ task_t *scheduler(task_t *tarefasUser){
 	return prox;
 }
 
-void dispatcher () {   
+void dispatcher () {  
+    int processadorInicioDispatcher = systime(); 
     while( queue_size( (queue_t*)tarefasUser) > 0 || queue_size( (queue_t*)tarefasNanando) > 0) { //analiza se existe algum elemento na fila de tarefas prontas
         if(tarefasUser != NULL){
             task_t *prox = scheduler(tarefasUser);
@@ -294,8 +295,9 @@ void dispatcher () {
             }
         }
         acordaTarefas();
-   }
-   task_exit(0);  //quando a fila esvazia, encerra o dispatcher, pois ele também é uma tarefa
+    }
+    Dispatcher.horarioProcessador = Dispatcher.horarioProcessador + (systime() - processadorInicioDispatcher);
+    task_exit(0);  //quando a fila esvazia, encerra o dispatcher, pois ele também é uma tarefa
 }
 
 void tratador (int signum)

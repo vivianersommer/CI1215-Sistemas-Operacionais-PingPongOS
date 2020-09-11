@@ -436,24 +436,3 @@ void acordaTarefas(){
     premp = 1;
     return;
 }
-
-
-int sem_create (semaphore_t *s, int value){
-
-
-}
-
-
-int sem_down (semaphore_t *s){
-
-}
-
-
-int sem_up (semaphore_t *s){
-
-}
-
-
-int sem_destroy (semaphore_t *s){
-
-}

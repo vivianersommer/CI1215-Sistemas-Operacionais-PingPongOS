@@ -448,12 +448,15 @@ void leave_cs (int *lock)
   (*lock) = 0 ;
 }
 
-int sem_create (semaphore_t *s, int value){
+int sem_create (semaphore_t *s, int value){ //acho q essa tá ok
     if(s == NULL){
         return -1;
     }
+    enter_cs (&lock) ;
     s->counter = value;
     s->Suspensas = NULL;
+    printf("Criado semáforo com value %d\n",s->counter);
+    leave_cs (&lock) ;
     return 0;
 }
 
@@ -468,8 +471,12 @@ int sem_down (semaphore_t *s){
         trocar->next = NULL;
         trocar->prev = NULL;
         queue_append((queue_t **) &(s->Suspensas),(queue_t *) trocar);
+        leave_cs (&lock) ;
+        task_yield();
     }
-    leave_cs (&lock) ;
+    else{
+        leave_cs (&lock) ;
+    }
     return 0;
 }
 
@@ -491,20 +498,22 @@ int sem_up (semaphore_t *s){
 }
 
 int sem_destroy (semaphore_t *s){
+    enter_cs (&lock) ;
     if(s == NULL){
         return -1;
     }
-    enter_cs (&lock) ;
     task_t *aux = s->Suspensas;
-    do{
-        task_t *trocar = aux;
-        aux->status = 0;
-        aux = aux->next;    
-        queue_remove ( ( queue_t** ) &(s->Suspensas), (queue_t*) trocar) ; 
-        trocar->next = NULL;
-        trocar->prev = NULL;
-        queue_append ( ( queue_t** ) &tarefasUser, (queue_t*) trocar ) ;
-    } while((s->Suspensas!= NULL && aux!= NULL) && s->Suspensas != aux );
+    if(aux != NULL){
+        do{
+            task_t *trocar = aux;
+            aux->status = 0;
+            aux = aux->next;    
+            queue_remove ( ( queue_t** ) &(s->Suspensas), (queue_t*) trocar) ; 
+            trocar->next = NULL;
+            trocar->prev = NULL;
+            queue_append ( ( queue_t** ) &tarefasUser, (queue_t*) trocar ) ;
+        } while((s->Suspensas!= NULL && aux!= NULL) && s->Suspensas != aux );
+    }
     s->counter = -100;
     leave_cs (&lock) ;
     return 0;

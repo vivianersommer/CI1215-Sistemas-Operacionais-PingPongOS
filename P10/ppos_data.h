@@ -55,7 +55,7 @@ int main (int argc, char *argv[]);
 // estrutura que define um semáforo
 typedef struct
 {
-  struct task_t *tarefasSuspensas;
+  struct task_t *Suspensas;
   int counter;
   // preencher quando necessário
 } semaphore_t ;

@@ -50,7 +50,6 @@ queue_t *queue_remove (queue_t **queue, queue_t *elem){
 	queue_t *aux = (*queue)->next;
 	while ( aux != elem ) {
 		if( aux->next == ( *queue )->next ) {
-			puts("nao pertence");
 			return NULL;
 		}
 		aux = aux->next;

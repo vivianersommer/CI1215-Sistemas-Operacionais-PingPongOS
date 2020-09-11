@@ -20,6 +20,7 @@ struct itimerval ZeraTimer = {0} ;
 char *stack ;
 int i=0 , premp;
 int quantum ; 
+int lock = 0 ;
 unsigned int relogio;
 task_t ContextMain, *ContextAtual ,*tarefasUser, Dispatcher , *tarefasNanando;
 
@@ -435,4 +436,76 @@ void acordaTarefas(){
     } while((tarefasNanando!= NULL && aux!= NULL) && tarefasNanando != aux );
     premp = 1;
     return;
+}
+ 
+void enter_cs (int *lock)
+{
+  while (__sync_fetch_and_or (lock, 1)) ;
+}
+ 
+void leave_cs (int *lock)
+{
+  (*lock) = 0 ;
+}
+
+int sem_create (semaphore_t *s, int value){
+    if(s == NULL){
+        return -1;
+    }
+    s->counter = value;
+    s->Suspensas = NULL;
+    return 0;
+}
+
+int sem_down (semaphore_t *s){
+    if(s == NULL){
+        return -1;
+    }
+    enter_cs (&lock) ;
+    s->counter -- ;
+    if(s->counter <0){
+        task_t *trocar = ContextAtual;
+        trocar->next = NULL;
+        trocar->prev = NULL;
+        queue_append((queue_t **) &(s->Suspensas),(queue_t *) trocar);
+    }
+    leave_cs (&lock) ;
+    return 0;
+}
+
+int sem_up (semaphore_t *s){
+    if(s == NULL){
+        return -1;
+    }
+    enter_cs (&lock) ;
+    s->counter ++ ;
+    if(s->counter <=0){
+        task_t *trocar = s->Suspensas;
+        queue_remove((queue_t **) &(s->Suspensas),(queue_t *) trocar);
+        trocar->next = NULL;
+        trocar->prev = NULL;
+        queue_append((queue_t **) &(tarefasUser),(queue_t *) trocar);
+    }
+    leave_cs (&lock) ;
+    return 0;
+}
+
+int sem_destroy (semaphore_t *s){
+    if(s == NULL){
+        return -1;
+    }
+    enter_cs (&lock) ;
+    task_t *aux = s->Suspensas;
+    do{
+        task_t *trocar = aux;
+        aux->status = 0;
+        aux = aux->next;    
+        queue_remove ( ( queue_t** ) &(s->Suspensas), (queue_t*) trocar) ; 
+        trocar->next = NULL;
+        trocar->prev = NULL;
+        queue_append ( ( queue_t** ) &tarefasUser, (queue_t*) trocar ) ;
+    } while((s->Suspensas!= NULL && aux!= NULL) && s->Suspensas != aux );
+    s->counter = -100;
+    leave_cs (&lock) ;
+    return 0;
 }

@@ -294,7 +294,6 @@ void dispatcher () {
             }
         }
         acordaTarefas();
-
    }
    task_exit(0);  //quando a fila esvazia, encerra o dispatcher, pois ele também é uma tarefa
 }
@@ -489,9 +488,11 @@ int sem_up (semaphore_t *s){
     if(s->counter <=0){
         task_t *trocar = s->Suspensas;
         queue_remove((queue_t **) &(s->Suspensas),(queue_t *) trocar);
-        trocar->next = NULL;
-        trocar->prev = NULL;
-        queue_append((queue_t **) &(tarefasUser),(queue_t *) trocar);
+        if(trocar!=NULL){
+            trocar->next = NULL;
+            trocar->prev = NULL;
+             queue_append((queue_t **) &(tarefasUser),(queue_t *) trocar);
+        }
     }
     leave_cs (&lock) ;
     return 0;
@@ -514,7 +515,7 @@ int sem_destroy (semaphore_t *s){
             queue_append ( ( queue_t** ) &tarefasUser, (queue_t*) trocar ) ;
         } while((s->Suspensas!= NULL && aux!= NULL) && s->Suspensas != aux );
     }
-    s->counter = -100;
+    s = NULL;
     leave_cs (&lock) ;
     return 0;
 }

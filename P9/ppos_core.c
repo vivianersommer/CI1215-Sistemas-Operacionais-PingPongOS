@@ -23,7 +23,7 @@ int quantum ;
 unsigned int relogio;
 task_t ContextMain, *ContextAtual ,*tarefasUser, Dispatcher , *tarefasNanando;
 
-/*  P6
+/*  P9
 
     Alunas: 
     
@@ -48,6 +48,8 @@ task_t ContextMain, *ContextAtual ,*tarefasUser, Dispatcher , *tarefasNanando;
             13 - systime - Função que retorna uma simulação de relógio
             14 - imprime_fila - Imprime a fila de forma organizada
 	    15 - task_join - Possibilita a sincronização de tarefas
+	    16 - task_sleep - Suspende uma tarefa durante um periodo especifico
+	    17 - acordaTarefas - Devolve a fila de prontas as tarefas que precisam acordar
  
     Arquivo ppos_data.h:
 
@@ -66,6 +68,8 @@ task_t ContextMain, *ContextAtual ,*tarefasUser, Dispatcher , *tarefasNanando;
             2 -  void temporizador() ;
             3 -  void imprime_fila(task_t *fila);
 	    4 -  int task_join();
+	    5 -  void task_sleep();
+	    6 -  void acordaTarefas();
 */
 
 void ppos_init (){

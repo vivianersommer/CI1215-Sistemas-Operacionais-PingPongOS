@@ -41,7 +41,7 @@ void consumidor() {
 int main () {
 
 
-	task_create(consumidor);
-	task_create(produtor);
+   task_create (&Pang, consumidor, "    ") ;
+   task_create (&Pang, produtor, "    ") ;
 
 }

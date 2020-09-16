@@ -11,7 +11,6 @@ int buffer[4];
 int primeiro = 0;
 int ultimo = -1;
 int capacidade = 5;
-int itens = 0;
 
 void produtor(void * arg) {
 	while (1)
@@ -19,7 +18,7 @@ void produtor(void * arg) {
 		if(ultimo == (capacidade-1)){ 
 			ultimo = -1;
 		}
-		if(itens == 5){
+		if(s_buffer.counter == 5){
 			continue;
 		}
 		else{
@@ -28,7 +27,7 @@ void produtor(void * arg) {
 			sem_down(&s_vaga);
 			sem_down(&s_buffer);
 			ultimo++;
-			itens ++;
+			s_buffer.counter ++;
 			buffer[ultimo] = item;
 			printf ("%s produziu (%d)\n", (char *) arg, item) ;
 			sem_up (&s_buffer);
@@ -43,7 +42,7 @@ void consumidor(void * arg) {
 		if(ultimo == primeiro){
 			continue;
 		}
-		if(itens == 0){
+		if(s_buffer.counter == 0){
 			continue;
 		}
 		else{
@@ -54,7 +53,7 @@ void consumidor(void * arg) {
 			if(primeiro == capacidade){
 				primeiro = 0;
 			}
-			itens--;
+			s_buffer.counter--;
 			sem_up (&s_buffer);
 			sem_up (&s_vaga);
 			task_sleep (1000);

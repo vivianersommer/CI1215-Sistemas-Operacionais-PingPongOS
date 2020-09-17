@@ -533,35 +533,41 @@ int sem_destroy (semaphore_t *s){
     return 0;
 }
 
-int mqueue_create (mqueue_t *queue, int max, int size) {
-    queue->conteudo = malloc (size * max);
-    if(queue->conteudo == NULL){
+int mqueue_create (mqueue_t *queue, int max, int size) {  //ok
+    if(queue == NULL){
         return -1;
     }
+
+    premp = 0;
+
+    queue->conteudo = malloc (size * max);
     queue->inicio = 0;
     queue->fim = -1;
     queue->tamanhoMax = max;
     queue->tamanhoMomento= 0;
+    queue->sizeOf = size;
+
+    premp = 1;
+
     return 0;
 }
 
 int mqueue_send (mqueue_t *queue, void *msg) { //1 
+    if(queue == NULL){
+        return -1;
+    }
     if(queue->fim == (queue->tamanhoMax-1)){ 
 		queue->fim = -1;
 	}
 	if(mqueue_msgs(queue) == 5){
 		task_sleep (100);
 	}
-	else{
-        task_sleep (1000);
-		sem_down(&s_vaga1);
-		sem_down(&s_buffer1);
-		queue->fim++;
-		queue->tamanhoMomento ++;
-		queue->conteudo = msg;
-		sem_up (&s_buffer1);
-		sem_up (&s_item1);
-	}
+	sem_down(&s_vaga1);
+	sem_down(&s_buffer1);
+    memcpy(queue->conteudo + queue->tamanhoMomento * queue->sizeOf, msg, queue->sizeOf);
+	sem_up (&s_buffer1);
+	sem_up (&s_item1);
+	
     return 0;
 }
 
@@ -572,23 +578,21 @@ int mqueue_recv (mqueue_t *queue, void *msg) { //2
 	if(mqueue_msgs(queue) == 0){
 		task_sleep (100);
 	}
-	else{
-		sem_down (&s_item2);
-		sem_down (&s_buffer2);
-		void *teste = NULL;
-        memcpy(teste, queue->conteudo, queue->inicio++);
-		if(queue->inicio == queue->tamanhoMax){
-			queue->inicio = 0;
-		}
-		queue->tamanhoMomento--;
-		sem_up (&s_buffer2);
-		sem_up (&s_vaga2);
-        task_sleep (1000);
+
+	sem_down (&s_item2);
+	sem_down (&s_buffer2);
+    memcpy(msg, queue->conteudo, queue->sizeOf);
+	if(queue->inicio == queue->tamanhoMax){
+		queue->inicio = 0;
 	}
+	queue->tamanhoMomento--;
+	sem_up (&s_buffer2);
+	sem_up (&s_vaga2);
+
     return 0;
 }
 
-int mqueue_destroy (mqueue_t *queue) {
+int mqueue_destroy (mqueue_t *queue) { //ok
     queue->inicio = 0;
     queue->fim = 0;
     queue->tamanhoMax = 0;

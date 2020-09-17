@@ -92,6 +92,7 @@ typedef struct
   int fim;
   int tamanhoMomento;
   int tamanhoMax;
+  int sizeOf;
 } mqueue_t ;
 
 #endif

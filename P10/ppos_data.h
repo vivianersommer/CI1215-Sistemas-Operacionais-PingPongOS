@@ -55,8 +55,20 @@ int main (int argc, char *argv[]);
 // estrutura que define um semáforo
 typedef struct
 {
+  struct task_t *Suspensas;
+  int counter;
   // preencher quando necessário
 } semaphore_t ;
+
+
+int sem_create (semaphore_t *s, int value);
+
+int sem_down (semaphore_t *s);
+
+int sem_up (semaphore_t *s);
+
+int sem_destroy (semaphore_t *s);
+
 
 // estrutura que define um mutex
 typedef struct

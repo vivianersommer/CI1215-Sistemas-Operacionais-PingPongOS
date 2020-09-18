@@ -3,6 +3,7 @@
 #include <assert.h>
 #include <signal.h>
 #include <sys/time.h>
+#include <string.h>
 #include "ppos.h"
 #include "ppos_data.h"
 
@@ -20,10 +21,11 @@ struct itimerval ZeraTimer = {0} ;
 char *stack ;
 int i=0 , premp;
 int quantum ; 
+int lock = 0 ;
 unsigned int relogio;
 task_t ContextMain, *ContextAtual ,*tarefasUser, Dispatcher , *tarefasNanando;
 
-/*  P9
+/*  P6
 
     Alunas: 
     
@@ -48,8 +50,6 @@ task_t ContextMain, *ContextAtual ,*tarefasUser, Dispatcher , *tarefasNanando;
             13 - systime - Função que retorna uma simulação de relógio
             14 - imprime_fila - Imprime a fila de forma organizada
 	    15 - task_join - Possibilita a sincronização de tarefas
-	    16 - task_sleep - Suspende uma tarefa durante um periodo especifico
-	    17 - acordaTarefas - Devolve a fila de prontas as tarefas que precisam acordar
  
     Arquivo ppos_data.h:
 
@@ -68,8 +68,6 @@ task_t ContextMain, *ContextAtual ,*tarefasUser, Dispatcher , *tarefasNanando;
             2 -  void temporizador() ;
             3 -  void imprime_fila(task_t *fila);
 	    4 -  int task_join();
-	    5 -  void task_sleep();
-	    6 -  void acordaTarefas();
 */
 
 void ppos_init (){
@@ -282,7 +280,8 @@ task_t *scheduler(task_t *tarefasUser){
 	return prox;
 }
 
-void dispatcher () {   
+void dispatcher () {  
+    int processadorInicioDispatcher = systime(); 
     while( queue_size( (queue_t*)tarefasUser) > 0 || queue_size( (queue_t*)tarefasNanando) > 0) { //analiza se existe algum elemento na fila de tarefas prontas
         if(tarefasUser != NULL){
             task_t *prox = scheduler(tarefasUser);
@@ -297,9 +296,9 @@ void dispatcher () {
             }
         }
         acordaTarefas();
-
-   }
-   task_exit(0);  //quando a fila esvazia, encerra o dispatcher, pois ele também é uma tarefa
+    }
+    Dispatcher.horarioProcessador = Dispatcher.horarioProcessador + (systime() - processadorInicioDispatcher);
+    task_exit(0);  //quando a fila esvazia, encerra o dispatcher, pois ele também é uma tarefa
 }
 
 void tratador (int signum)
@@ -439,4 +438,156 @@ void acordaTarefas(){
     } while((tarefasNanando!= NULL && aux!= NULL) && tarefasNanando != aux );
     premp = 1;
     return;
+}
+ 
+void enter_cs (int *lock)
+{
+  while (__sync_fetch_and_or (lock, 1)) ;
+}
+ 
+void leave_cs (int *lock)
+{
+  (*lock) = 0 ;
+}
+
+int sem_create (semaphore_t *s, int value){ //acho q essa tá ok
+    if(s == NULL){
+        return -1;
+    }
+    enter_cs (&lock) ;
+    s->counter = value;
+    s->Suspensas = NULL;
+    printf("Criado semáforo com value %d\n",s->counter);
+    leave_cs (&lock) ;
+    return 0;
+}
+
+int sem_down (semaphore_t *s){
+    if(s == NULL){
+        return -1;
+    }
+    enter_cs (&lock) ;
+    s->counter -- ;
+    if(s->counter <0){
+        task_t *trocar = ContextAtual;
+        trocar->next = NULL;
+        trocar->prev = NULL;
+        queue_append((queue_t **) &(s->Suspensas),(queue_t *) trocar);
+        leave_cs (&lock) ;
+        task_yield();
+    }
+    else{
+        leave_cs (&lock) ;
+    }
+    return 0;
+}
+
+int sem_up (semaphore_t *s){
+    if(s == NULL){
+        return -1;
+    }
+    enter_cs (&lock) ;
+    s->counter ++ ;
+    if(s->counter <=0){
+        task_t *trocar = s->Suspensas;
+        queue_remove((queue_t **) &(s->Suspensas),(queue_t *) trocar);
+        if(trocar!=NULL){
+            trocar->next = NULL;
+            trocar->prev = NULL;
+             queue_append((queue_t **) &(tarefasUser),(queue_t *) trocar);
+        }
+    }
+    leave_cs (&lock) ;
+    return 0;
+}
+
+int sem_destroy (semaphore_t *s){
+    enter_cs (&lock) ;
+    if(s == NULL){
+        return -1;
+    }
+    task_t *aux = s->Suspensas;
+    if(aux != NULL){
+        do{
+            task_t *trocar = aux;
+            aux->status = 0;
+            aux = aux->next;    
+            queue_remove ( ( queue_t** ) &(s->Suspensas), (queue_t*) trocar) ; 
+            trocar->next = NULL;
+            trocar->prev = NULL;
+            queue_append ( ( queue_t** ) &tarefasUser, (queue_t*) trocar ) ;
+        } while((s->Suspensas!= NULL && aux!= NULL) && s->Suspensas != aux );
+    }
+    s = NULL;
+    leave_cs (&lock) ;
+    return 0;
+}
+
+int mqueue_create (mqueue_t *queue, int max, int size) {  
+    if(queue == NULL){
+        return -1;
+    }
+    premp = 0;
+    queue->conteudo = malloc (size * max);
+    queue->inicio = 0;
+    queue->fim = 0;
+    queue->tamanhoMax = max;
+    queue->tamanhoMomento= 0;
+    queue->sizeOf = size;
+    queue->status = 1 ; // ativa
+    sem_create (&queue->s_buffer, 1) ;
+    sem_create (&queue->s_item, 0) ;
+	sem_create (&queue->s_vaga, 5) ;
+    premp = 1;
+    return 0;
+}
+
+int mqueue_send (mqueue_t *queue, void *msg) { 
+    if(queue == NULL  || queue->status == 0){
+        return -1;
+    }
+    premp = 0;
+    sem_down(&queue->s_vaga);
+    sem_down(&queue->s_buffer);
+    memcpy(queue->conteudo + (queue->fim)*(queue->sizeOf), msg , queue->sizeOf);
+    queue->tamanhoMomento ++;
+    queue->fim = (queue->fim + 1) % queue->tamanhoMax;
+	sem_up (&queue->s_buffer);
+	sem_up (&queue->s_item);
+	premp = 1;
+    return 0;
+}
+
+int mqueue_recv (mqueue_t *queue, void *msg) { 
+    if(queue == NULL || queue->status == 0){
+        return -1;
+    }
+    premp = 0;
+    sem_down(&queue->s_item);
+    sem_down(&queue->s_buffer);
+    memcpy(msg, queue->conteudo + (queue->inicio)*(queue->sizeOf) , queue->sizeOf);
+    queue->inicio = (queue->inicio + 1) % queue->tamanhoMax;
+	queue->tamanhoMomento--;
+	sem_up(&queue->s_buffer);
+	sem_up(&queue->s_vaga);
+    premp = 1;
+    return 0;
+}
+
+int mqueue_destroy (mqueue_t *queue) { 
+    premp = 0;
+    sem_destroy (&queue->s_buffer) ;
+    sem_destroy (&queue->s_item) ;
+	sem_destroy (&queue->s_vaga) ;
+    queue->status = 0; // inativa
+    queue = NULL;
+    premp = 1;
+    return 0;
+}
+
+int mqueue_msgs (mqueue_t *queue) {
+    if(queue == NULL){
+        return -1;
+    }
+    return queue->tamanhoMomento;
 }

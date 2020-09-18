@@ -545,9 +545,10 @@ int mqueue_send (mqueue_t *queue, void *msg) { //1
     if(queue == NULL){
         return -1;
     }
-	sem_down(&queue->s_vaga);
-	sem_down(&queue->s_buffer);
-    bcopy(queue->conteudo , msg , queue->sizeOf); 
+    if(sem_down(&queue->s_vaga)<0 || sem_down(&queue->s_buffer)<0){
+        return -1;
+    }
+    bcopy(msg , queue->conteudo , queue->sizeOf); 
 	sem_up (&queue->s_buffer);
 	sem_up (&queue->s_item);
 	
@@ -558,9 +559,10 @@ int mqueue_recv (mqueue_t *queue, void *msg) { //2
     if(queue == NULL){
         return -1;
     }
-	sem_up (&queue->s_item);
-	sem_down(&queue->s_buffer);
-    bcopy(msg , queue->conteudo , queue->sizeOf); 
+    if(sem_down(&queue->s_vaga)<0 || sem_down(&queue->s_buffer)<0){
+        return -1;
+    }
+    bcopy(queue->conteudo , msg , queue->sizeOf); 
 	if(queue->inicio == queue->tamanhoMax){
 		queue->inicio = 0;
 	}

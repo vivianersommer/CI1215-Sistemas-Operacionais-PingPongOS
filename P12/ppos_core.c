@@ -545,13 +545,16 @@ int mqueue_send (mqueue_t *queue, void *msg) { //1
     if(queue == NULL){
         return -1;
     }
-    if(sem_down(&queue->s_vaga)<0 || sem_down(&queue->s_buffer)<0){
-        return -1;
-    }
-    bcopy(msg , queue->conteudo , queue->sizeOf); 
+    premp = 0;
+    sem_down(&queue->s_vaga);
+    sem_down(&queue->s_buffer);
+    int result = ((int *) (memcpy(queue->conteudo + (queue->fim)*(queue->sizeOf), msg , queue->sizeOf)))[0];
+    printf(" send %d\n" , result);
+    queue->tamanhoMomento ++;
+    queue->fim = (queue->fim + 1) % queue->tamanhoMax;
 	sem_up (&queue->s_buffer);
 	sem_up (&queue->s_item);
-	
+	premp = 1;
     return 0;
 }
 
@@ -559,30 +562,32 @@ int mqueue_recv (mqueue_t *queue, void *msg) { //2
     if(queue == NULL){
         return -1;
     }
-    if(sem_down(&queue->s_vaga)<0 || sem_down(&queue->s_buffer)<0){
-        return -1;
-    }
-    bcopy(queue->conteudo , msg , queue->sizeOf); 
-	if(queue->inicio == queue->tamanhoMax){
-		queue->inicio = 0;
-	}
+    premp = 0;
+    sem_down(&queue->s_vaga);
+    sem_down(&queue->s_buffer);
+    int result = ((int *) (memcpy(msg, queue->conteudo + (queue->inicio)*(queue->sizeOf) , queue->sizeOf)))[0];
+    printf(" recv %d\n" , result);
+    queue->inicio = (queue->inicio + 1) % queue->tamanhoMax;
 	queue->tamanhoMomento--;
 	sem_down(&queue->s_buffer);
 	sem_down(&queue->s_vaga);
-
+    premp = 1;
     return 0;
 }
 
 int mqueue_destroy (mqueue_t *queue) { //ok
+    if(queue == NULL){
+        return -1;
+    }
     queue->inicio = 0;
     queue->fim = 0;
     queue->tamanhoMax = 0;
     queue->tamanhoMomento = 0;
+    sem_destroy (&queue->s_buffer) ;
+    sem_destroy (&queue->s_item) ;
+	sem_destroy (&queue->s_vaga) ;
     free(queue->conteudo);
-    free(queue);
-    if(queue != NULL){
-        return -1;
-    }
+    queue = NULL;
     return 0;
 }
 

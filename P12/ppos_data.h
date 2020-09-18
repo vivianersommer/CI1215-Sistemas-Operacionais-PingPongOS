@@ -93,6 +93,9 @@ typedef struct
   int tamanhoMomento;
   int tamanhoMax;
   int sizeOf;
+  semaphore_t s_buffer;
+  semaphore_t s_item;
+  semaphore_t s_vaga;
 } mqueue_t ;
 
 #endif

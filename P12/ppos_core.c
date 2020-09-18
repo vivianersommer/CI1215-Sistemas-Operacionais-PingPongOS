@@ -24,8 +24,6 @@ int quantum ;
 int lock = 0 ;
 unsigned int relogio;
 task_t ContextMain, *ContextAtual ,*tarefasUser, Dispatcher , *tarefasNanando;
-semaphore_t s_buffer1, s_item1, s_vaga1 ;
-semaphore_t s_buffer2, s_item2, s_vaga2 ;
 
 /*  P6
 
@@ -118,14 +116,6 @@ void ppos_init (){
     
     // ajusta e ativa mecanismo de preempção por tempo
     temporizador();
-
-    //inicia semáforos
-    sem_create (&s_buffer1, 1) ;
-    sem_create (&s_item1, 0) ;
-	sem_create (&s_vaga1, 5) ;
-    sem_create (&s_buffer2, 1) ;
-    sem_create (&s_item2, 0) ;
-	sem_create (&s_vaga2, 5) ;
 
     //Ativa dispatcher ao iniciar
     task_yield () ;
@@ -538,16 +528,15 @@ int mqueue_create (mqueue_t *queue, int max, int size) {  //ok
         return -1;
     }
 
-    premp = 0;
-
     queue->conteudo = malloc (size * max);
     queue->inicio = 0;
     queue->fim = -1;
     queue->tamanhoMax = max;
     queue->tamanhoMomento= 0;
     queue->sizeOf = size;
-
-    premp = 1;
+    sem_create (&queue->s_buffer, 1) ;
+    sem_create (&queue->s_item, 0) ;
+	sem_create (&queue->s_vaga, 5) ;
 
     return 0;
 }
@@ -556,38 +545,28 @@ int mqueue_send (mqueue_t *queue, void *msg) { //1
     if(queue == NULL){
         return -1;
     }
-    if(queue->fim == (queue->tamanhoMax-1)){ 
-		queue->fim = -1;
-	}
-	if(mqueue_msgs(queue) == 5){
-		task_sleep (100);
-	}
-	sem_down(&s_vaga1);
-	sem_down(&s_buffer1);
-    memcpy(queue->conteudo + queue->tamanhoMomento * queue->sizeOf, msg, queue->sizeOf);
-	sem_up (&s_buffer1);
-	sem_up (&s_item1);
+	sem_down(&queue->s_vaga);
+	sem_down(&queue->s_buffer);
+    bcopy(queue->conteudo , msg , queue->sizeOf); 
+	sem_up (&queue->s_buffer);
+	sem_up (&queue->s_item);
 	
     return 0;
 }
 
 int mqueue_recv (mqueue_t *queue, void *msg) { //2
-    if(queue->fim == queue->inicio){
-	    task_sleep (100);
-	}
-	if(mqueue_msgs(queue) == 0){
-		task_sleep (100);
-	}
-
-	sem_down (&s_item2);
-	sem_down (&s_buffer2);
-    memcpy(msg, queue->conteudo, queue->sizeOf);
+    if(queue == NULL){
+        return -1;
+    }
+	sem_up (&queue->s_item);
+	sem_down(&queue->s_buffer);
+    bcopy(msg , queue->conteudo , queue->sizeOf); 
 	if(queue->inicio == queue->tamanhoMax){
 		queue->inicio = 0;
 	}
 	queue->tamanhoMomento--;
-	sem_up (&s_buffer2);
-	sem_up (&s_vaga2);
+	sem_down(&queue->s_buffer);
+	sem_down(&queue->s_vaga);
 
     return 0;
 }

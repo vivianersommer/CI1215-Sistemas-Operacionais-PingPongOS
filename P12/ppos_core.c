@@ -562,7 +562,7 @@ int mqueue_recv (mqueue_t *queue, void *msg) { //2
         return -1;
     }
     premp = 0;
-    sem_down(&queue->s_vaga);
+    sem_down(&queue->s_item);
     sem_down(&queue->s_buffer);
     memcpy(msg, queue->conteudo + (queue->inicio)*(queue->sizeOf) , queue->sizeOf);
     queue->inicio = (queue->inicio + 1) % queue->tamanhoMax;

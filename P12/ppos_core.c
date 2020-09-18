@@ -530,7 +530,7 @@ int mqueue_create (mqueue_t *queue, int max, int size) {  //ok
 
     queue->conteudo = malloc (size * max);
     queue->inicio = 0;
-    queue->fim = -1;
+    queue->fim = 0;
     queue->tamanhoMax = max;
     queue->tamanhoMomento= 0;
     queue->sizeOf = size;
@@ -548,8 +548,7 @@ int mqueue_send (mqueue_t *queue, void *msg) { //1
     premp = 0;
     sem_down(&queue->s_vaga);
     sem_down(&queue->s_buffer);
-    int result = ((int *) (memcpy(queue->conteudo + (queue->fim)*(queue->sizeOf), msg , queue->sizeOf)))[0];
-    // printf(" send %d\n" , result);
+    memcpy(queue->conteudo + (queue->fim)*(queue->sizeOf), msg , queue->sizeOf);
     queue->tamanhoMomento ++;
     queue->fim = (queue->fim + 1) % queue->tamanhoMax;
 	sem_up (&queue->s_buffer);
@@ -565,8 +564,7 @@ int mqueue_recv (mqueue_t *queue, void *msg) { //2
     premp = 0;
     sem_down(&queue->s_vaga);
     sem_down(&queue->s_buffer);
-    int result = ((int *) (memcpy(msg, queue->conteudo + (queue->inicio)*(queue->sizeOf) , queue->sizeOf)))[0];
-    // printf(" recv %d\n" , result);
+    memcpy(msg, queue->conteudo + (queue->inicio)*(queue->sizeOf) , queue->sizeOf);
     queue->inicio = (queue->inicio + 1) % queue->tamanhoMax;
 	queue->tamanhoMomento--;
 	sem_up(&queue->s_buffer);

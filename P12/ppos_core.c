@@ -523,11 +523,11 @@ int sem_destroy (semaphore_t *s){
     return 0;
 }
 
-int mqueue_create (mqueue_t *queue, int max, int size) {  //ok
+int mqueue_create (mqueue_t *queue, int max, int size) {  
     if(queue == NULL){
         return -1;
     }
-
+    premp = 0;
     queue->conteudo = malloc (size * max);
     queue->inicio = 0;
     queue->fim = 0;
@@ -537,11 +537,11 @@ int mqueue_create (mqueue_t *queue, int max, int size) {  //ok
     sem_create (&queue->s_buffer, 1) ;
     sem_create (&queue->s_item, 0) ;
 	sem_create (&queue->s_vaga, 5) ;
-
+    premp = 1;
     return 0;
 }
 
-int mqueue_send (mqueue_t *queue, void *msg) { //1 
+int mqueue_send (mqueue_t *queue, void *msg) { 
     if(queue == NULL){
         return -1;
     }
@@ -557,7 +557,7 @@ int mqueue_send (mqueue_t *queue, void *msg) { //1
     return 0;
 }
 
-int mqueue_recv (mqueue_t *queue, void *msg) { //2
+int mqueue_recv (mqueue_t *queue, void *msg) { 
     if(queue == NULL){
         return -1;
     }
@@ -573,19 +573,16 @@ int mqueue_recv (mqueue_t *queue, void *msg) { //2
     return 0;
 }
 
-int mqueue_destroy (mqueue_t *queue) { //ok
+int mqueue_destroy (mqueue_t *queue) { 
     if(queue == NULL){
         return -1;
     }
-    queue->inicio = 0;
-    queue->fim = 0;
-    queue->tamanhoMax = 0;
-    queue->tamanhoMomento = 0;
+    premp = 0;
     sem_destroy (&queue->s_buffer) ;
     sem_destroy (&queue->s_item) ;
 	sem_destroy (&queue->s_vaga) ;
-    free(queue->conteudo);
     queue = NULL;
+    premp = 1;
     return 0;
 }
 

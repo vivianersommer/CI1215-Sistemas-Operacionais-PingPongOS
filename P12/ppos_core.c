@@ -549,7 +549,7 @@ int mqueue_send (mqueue_t *queue, void *msg) { //1
     sem_down(&queue->s_vaga);
     sem_down(&queue->s_buffer);
     int result = ((int *) (memcpy(queue->conteudo + (queue->fim)*(queue->sizeOf), msg , queue->sizeOf)))[0];
-    printf(" send %d\n" , result);
+    // printf(" send %d\n" , result);
     queue->tamanhoMomento ++;
     queue->fim = (queue->fim + 1) % queue->tamanhoMax;
 	sem_up (&queue->s_buffer);
@@ -566,11 +566,11 @@ int mqueue_recv (mqueue_t *queue, void *msg) { //2
     sem_down(&queue->s_vaga);
     sem_down(&queue->s_buffer);
     int result = ((int *) (memcpy(msg, queue->conteudo + (queue->inicio)*(queue->sizeOf) , queue->sizeOf)))[0];
-    printf(" recv %d\n" , result);
+    // printf(" recv %d\n" , result);
     queue->inicio = (queue->inicio + 1) % queue->tamanhoMax;
 	queue->tamanhoMomento--;
-	sem_down(&queue->s_buffer);
-	sem_down(&queue->s_vaga);
+	sem_up(&queue->s_buffer);
+	sem_up(&queue->s_vaga);
     premp = 1;
     return 0;
 }

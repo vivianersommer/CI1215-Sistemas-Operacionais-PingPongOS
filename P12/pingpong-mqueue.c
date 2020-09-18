@@ -20,7 +20,6 @@ void prodBody (void * saida)
 
    while (1)
    {
-      printf("Prodiziniii\n");
       // sorteia um valor inteiro aleatorio
       valor = random() % 1000 ;
 
@@ -46,7 +45,6 @@ void somaBody (void * arg)
 
    for (i=0; i<10; i++)
    {
-      printf("Somaniii\n");
       // recebe tres valores inteiros
       mqueue_recv (&queueValores, &v1) ;
       printf ("               T%d: recebeu %d\n", task_id(), v1) ;
@@ -77,7 +75,6 @@ void consBody (void * arg)
 
    while(1)
    {
-      printf("consuminii\n");
       // recebe um valor (double)
       if (mqueue_recv (&queueRaizes, &valor) < 0)
       {

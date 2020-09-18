@@ -534,6 +534,7 @@ int mqueue_create (mqueue_t *queue, int max, int size) {
     queue->tamanhoMax = max;
     queue->tamanhoMomento= 0;
     queue->sizeOf = size;
+    queue->status = 1 ; // ativa
     sem_create (&queue->s_buffer, 1) ;
     sem_create (&queue->s_item, 0) ;
 	sem_create (&queue->s_vaga, 5) ;
@@ -542,7 +543,7 @@ int mqueue_create (mqueue_t *queue, int max, int size) {
 }
 
 int mqueue_send (mqueue_t *queue, void *msg) { 
-    if(queue == NULL){
+    if(queue == NULL  || queue->status == 0){
         return -1;
     }
     premp = 0;
@@ -558,7 +559,7 @@ int mqueue_send (mqueue_t *queue, void *msg) {
 }
 
 int mqueue_recv (mqueue_t *queue, void *msg) { 
-    if(queue == NULL){
+    if(queue == NULL || queue->status == 0){
         return -1;
     }
     premp = 0;
@@ -574,13 +575,11 @@ int mqueue_recv (mqueue_t *queue, void *msg) {
 }
 
 int mqueue_destroy (mqueue_t *queue) { 
-    if(queue == NULL){
-        return -1;
-    }
     premp = 0;
     sem_destroy (&queue->s_buffer) ;
     sem_destroy (&queue->s_item) ;
 	sem_destroy (&queue->s_vaga) ;
+    queue->status = 0; // inativa
     queue = NULL;
     premp = 1;
     return 0;
